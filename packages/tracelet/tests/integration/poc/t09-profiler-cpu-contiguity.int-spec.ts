@@ -7,6 +7,7 @@ import { ContinuousProfiler } from '../../../src/profiling/index.js';
 import { generateCodeHeavy } from '../../support/profiling/generate-code-heavy.js';
 import type { GeneratedCodeHeavy } from '../../support/profiling/generate-code-heavy.js';
 import { absolutePathViolations, continuity, runMixedLoad, stallSeries, summarizeSeries } from '../../support/profiling/load.js';
+import { skipIfBusyWait } from '../../support/profiling/runtime-gate.js';
 
 /* T09 (plan 16): 30 s CPU-bound + concurrent allocation-heavy loop on the code-heavy fixture, windowMs 5000, 99 Hz. */
 
@@ -26,7 +27,8 @@ describe('T09 profiler contiguity under CPU load (code-heavy fixture)', () => {
     }
   });
 
-  it('keeps sampling contiguous: sample-based gaps <= 250 ms, coverage >= 0.95, burnCpu in every window, state never disabled/error', async () => {
+  it('keeps sampling contiguous: sample-based gaps <= 250 ms, coverage >= 0.95, burnCpu in every window, state never disabled/error', async (ctx) => {
+    skipIfBusyWait(ctx);
     expect(fixture.module.functionCount).toBeGreaterThanOrEqual(10_000);
 
     const queue = new BoundedTelemetryQueue({ maxQueuedProfiles: 50 });

@@ -4,4 +4,8 @@ export { probeInspector } from './inspector-probe.js';
 export type { InspectorProbeResult } from './inspector-probe.js';
 export { toProfileItem } from './profile-mapper.js';
 export { foldProfile, achievedSampleRateHz } from './vendor/fold-profile.js';
-// MetricsCollector and vendor/runtime-metrics belong to Mission 06 (not part of the sampler POC).
+export { MetricsCollector, DEFAULT_METRICS_INTERVAL_MS } from './metrics-collector.js';
+export type { MetricsCollectorConfig, MetricsCollectorDeps, MetricsCollectorDebug } from './metrics-collector.js';
+export { RuntimeMetricsSampler } from './vendor/runtime-metrics.js';
+export type { RuntimeSample, RuntimeSampling } from './vendor/runtime-metrics.js';
+export type { NodeRuntimeMetrics } from './vendor/node-runtime-metrics.interface.js';

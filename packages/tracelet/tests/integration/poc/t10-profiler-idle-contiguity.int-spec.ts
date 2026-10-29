@@ -5,11 +5,13 @@ import { BoundedTelemetryQueue } from '../../../src/buffer/index.js';
 import type { ProfileItem } from '../../../src/contracts/index.js';
 import { ContinuousProfiler } from '../../../src/profiling/index.js';
 import { absolutePathViolations, continuity, sleep, stallSeries, summarizeSeries } from '../../support/profiling/load.js';
+import { skipIfBusyWait } from '../../support/profiling/runtime-gate.js';
 
 /* T10 (plan 16): 30 s idle, windowMs 5000, 99 Hz: windows are still produced and contiguous by the same sample-based rule. */
 
 describe('T10 profiler contiguity while idle', () => {
-  it('produces contiguous windows with idle samples and stays running', async () => {
+  it('produces contiguous windows with idle samples and stays running', async (ctx) => {
+    skipIfBusyWait(ctx);
     const queue = new BoundedTelemetryQueue({ maxQueuedProfiles: 50 });
     const profiler = new ContinuousProfiler(
       { enabled: true, sampleRateHz: 99, windowMs: 5000 },
