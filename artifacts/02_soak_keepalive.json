@@ -1,0 +1,258 @@
+{
+  "mode": "keepalive",
+  "node": "v22.22.0",
+  "minutes": 5,
+  "keepAlive": "active",
+  "rotations": 297,
+  "backoffs": 0,
+  "errors": 0,
+  "startStallMs": {
+    "p50": 0.11,
+    "max": 20.9
+  },
+  "stopStallMs": {
+    "p50": 0.46,
+    "max": 4
+  },
+  "trend": {
+    "rss": {
+      "min30to90s": 470.2,
+      "last90s": 473.2
+    },
+    "heapUsed": {
+      "min30to90s": 221.3,
+      "last90s": 214.6
+    },
+    "heapTotal": {
+      "min30to90s": 254.2,
+      "last90s": 274.5
+    },
+    "external": {
+      "min30to90s": 1.7,
+      "last90s": 1.7
+    }
+  },
+  "finalBeforeGc": {
+    "rss": 473,
+    "heapUsed": 330.2,
+    "heapTotal": 363
+  },
+  "finalAfterFullGc": {
+    "rss": 465.7,
+    "heapUsed": 68.4,
+    "heapTotal": 103.3,
+    "nonHeap": 362.4
+  },
+  "samples": [
+    {
+      "tSec": 10,
+      "rss": 467.5,
+      "heapUsed": 246,
+      "heapTotal": 270,
+      "external": 1.7
+    },
+    {
+      "tSec": 20,
+      "rss": 470.4,
+      "heapUsed": 303.2,
+      "heapTotal": 334.3,
+      "external": 1.7
+    },
+    {
+      "tSec": 30,
+      "rss": 470.4,
+      "heapUsed": 226.5,
+      "heapTotal": 253.5,
+      "external": 1.7
+    },
+    {
+      "tSec": 40,
+      "rss": 470.3,
+      "heapUsed": 99.2,
+      "heapTotal": 158.5,
+      "external": 1.7
+    },
+    {
+      "tSec": 50,
+      "rss": 469.8,
+      "heapUsed": 273,
+      "heapTotal": 300.8,
+      "external": 1.7
+    },
+    {
+      "tSec": 60,
+      "rss": 470.2,
+      "heapUsed": 188.9,
+      "heapTotal": 213.8,
+      "external": 1.7
+    },
+    {
+      "tSec": 70,
+      "rss": 469.7,
+      "heapUsed": 249.4,
+      "heapTotal": 280,
+      "external": 1.7
+    },
+    {
+      "tSec": 80,
+      "rss": 470.6,
+      "heapUsed": 235.6,
+      "heapTotal": 266,
+      "external": 1.7
+    },
+    {
+      "tSec": 90,
+      "rss": 470.4,
+      "heapUsed": 276.6,
+      "heapTotal": 307,
+      "external": 1.7
+    },
+    {
+      "tSec": 100,
+      "rss": 470.3,
+      "heapUsed": 310.8,
+      "heapTotal": 335.5,
+      "external": 1.7
+    },
+    {
+      "tSec": 110,
+      "rss": 470.5,
+      "heapUsed": 124.2,
+      "heapTotal": 187.3,
+      "external": 1.7
+    },
+    {
+      "tSec": 120,
+      "rss": 469.9,
+      "heapUsed": 179.8,
+      "heapTotal": 205.8,
+      "external": 1.7
+    },
+    {
+      "tSec": 130,
+      "rss": 476.3,
+      "heapUsed": 230.8,
+      "heapTotal": 260.8,
+      "external": 1.7
+    },
+    {
+      "tSec": 140,
+      "rss": 470.4,
+      "heapUsed": 283,
+      "heapTotal": 312.5,
+      "external": 1.7
+    },
+    {
+      "tSec": 150,
+      "rss": 470.3,
+      "heapUsed": 193.9,
+      "heapTotal": 223.5,
+      "external": 1.7
+    },
+    {
+      "tSec": 160,
+      "rss": 470.4,
+      "heapUsed": 224.8,
+      "heapTotal": 254.8,
+      "external": 1.7
+    },
+    {
+      "tSec": 170,
+      "rss": 472.1,
+      "heapUsed": 199.2,
+      "heapTotal": 229,
+      "external": 1.7
+    },
+    {
+      "tSec": 180,
+      "rss": 470.3,
+      "heapUsed": 114,
+      "heapTotal": 204.8,
+      "external": 1.7
+    },
+    {
+      "tSec": 190,
+      "rss": 476.6,
+      "heapUsed": 267.7,
+      "heapTotal": 298.5,
+      "external": 1.7
+    },
+    {
+      "tSec": 200,
+      "rss": 472.4,
+      "heapUsed": 250.5,
+      "heapTotal": 281.3,
+      "external": 1.7
+    },
+    {
+      "tSec": 210,
+      "rss": 472.3,
+      "heapUsed": 323.5,
+      "heapTotal": 355.8,
+      "external": 1.7
+    },
+    {
+      "tSec": 220,
+      "rss": 472.7,
+      "heapUsed": 109.1,
+      "heapTotal": 227.8,
+      "external": 1.7
+    },
+    {
+      "tSec": 230,
+      "rss": 472.8,
+      "heapUsed": 78.2,
+      "heapTotal": 210,
+      "external": 1.7
+    },
+    {
+      "tSec": 240,
+      "rss": 473.1,
+      "heapUsed": 181.1,
+      "heapTotal": 219.3,
+      "external": 1.7
+    },
+    {
+      "tSec": 250,
+      "rss": 473.2,
+      "heapUsed": 206.2,
+      "heapTotal": 231.3,
+      "external": 1.7
+    },
+    {
+      "tSec": 260,
+      "rss": 472.5,
+      "heapUsed": 115.3,
+      "heapTotal": 221.5,
+      "external": 1.7
+    },
+    {
+      "tSec": 270,
+      "rss": 472.9,
+      "heapUsed": 174.1,
+      "heapTotal": 226.8,
+      "external": 1.7
+    },
+    {
+      "tSec": 280,
+      "rss": 472.1,
+      "heapUsed": 292.2,
+      "heapTotal": 323.3,
+      "external": 1.7
+    },
+    {
+      "tSec": 290,
+      "rss": 473.2,
+      "heapUsed": 335.8,
+      "heapTotal": 366.3,
+      "external": 1.7
+    },
+    {
+      "tSec": 300,
+      "rss": 477.6,
+      "heapUsed": 330.1,
+      "heapTotal": 363,
+      "external": 1.7
+    }
+  ]
+}

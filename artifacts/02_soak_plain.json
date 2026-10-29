@@ -1,0 +1,266 @@
+{
+  "mode": "plain",
+  "node": "v22.22.0",
+  "minutes": 5,
+  "keepAlive": "off",
+  "keepAliveOffReason": "disabled by option",
+  "rotations": 180,
+  "backoffs": 0,
+  "errors": 0,
+  "startStallMs": {
+    "p50": 632.49,
+    "max": 1670.64
+  },
+  "stopStallMs": {
+    "p50": 10.71,
+    "max": 27.78
+  },
+  "trend": {
+    "rss": {
+      "min30to90s": 428.9,
+      "last90s": 455.1
+    },
+    "heapUsed": {
+      "min30to90s": 179.2,
+      "last90s": 229.8
+    },
+    "heapTotal": {
+      "min30to90s": 221,
+      "last90s": 260.9
+    },
+    "external": {
+      "min30to90s": 1.7,
+      "last90s": 1.7
+    }
+  },
+  "finalBeforeGc": {
+    "rss": 455.6,
+    "heapUsed": 158.4,
+    "heapTotal": 198
+  },
+  "finalAfterFullGc": {
+    "rss": 453.4,
+    "heapUsed": 66.8,
+    "heapTotal": 104.3,
+    "nonHeap": 349.1
+  },
+  "samples": [
+    {
+      "tSec": 10,
+      "rss": 403.3,
+      "heapUsed": 150.3,
+      "heapTotal": 173.3,
+      "external": 1.7
+    },
+    {
+      "tSec": 21,
+      "rss": 404.7,
+      "heapUsed": 287.1,
+      "heapTotal": 316.5,
+      "external": 1.7
+    },
+    {
+      "tSec": 30,
+      "rss": 418,
+      "heapUsed": 193.8,
+      "heapTotal": 223.8,
+      "external": 1.7
+    },
+    {
+      "tSec": 40,
+      "rss": 417.3,
+      "heapUsed": 85.8,
+      "heapTotal": 157.3,
+      "external": 1.7
+    },
+    {
+      "tSec": 51,
+      "rss": 429.9,
+      "heapUsed": 224.4,
+      "heapTotal": 252.5,
+      "external": 1.7
+    },
+    {
+      "tSec": 61,
+      "rss": 428.1,
+      "heapUsed": 269.8,
+      "heapTotal": 298.5,
+      "external": 1.7
+    },
+    {
+      "tSec": 70,
+      "rss": 427.3,
+      "heapUsed": 125.5,
+      "heapTotal": 163,
+      "external": 1.7
+    },
+    {
+      "tSec": 80,
+      "rss": 429.7,
+      "heapUsed": 259.5,
+      "heapTotal": 286.8,
+      "external": 1.7
+    },
+    {
+      "tSec": 90,
+      "rss": 452.3,
+      "heapUsed": 95.5,
+      "heapTotal": 164.8,
+      "external": 1.7
+    },
+    {
+      "tSec": 100,
+      "rss": 454.5,
+      "heapUsed": 138.3,
+      "heapTotal": 167,
+      "external": 1.7
+    },
+    {
+      "tSec": 110,
+      "rss": 452.3,
+      "heapUsed": 124.9,
+      "heapTotal": 161.8,
+      "external": 1.7
+    },
+    {
+      "tSec": 120,
+      "rss": 453.2,
+      "heapUsed": 175.5,
+      "heapTotal": 200.3,
+      "external": 1.7
+    },
+    {
+      "tSec": 130,
+      "rss": 452.3,
+      "heapUsed": 144.1,
+      "heapTotal": 173.3,
+      "external": 1.7
+    },
+    {
+      "tSec": 140,
+      "rss": 452.3,
+      "heapUsed": 135.9,
+      "heapTotal": 170.3,
+      "external": 1.7
+    },
+    {
+      "tSec": 151,
+      "rss": 453.6,
+      "heapUsed": 288.7,
+      "heapTotal": 318,
+      "external": 1.7
+    },
+    {
+      "tSec": 160,
+      "rss": 454.1,
+      "heapUsed": 116.7,
+      "heapTotal": 178.3,
+      "external": 1.7
+    },
+    {
+      "tSec": 170,
+      "rss": 455.2,
+      "heapUsed": 286.5,
+      "heapTotal": 317.8,
+      "external": 1.7
+    },
+    {
+      "tSec": 180,
+      "rss": 453.8,
+      "heapUsed": 107.2,
+      "heapTotal": 177,
+      "external": 1.7
+    },
+    {
+      "tSec": 190,
+      "rss": 455.2,
+      "heapUsed": 337,
+      "heapTotal": 365.8,
+      "external": 1.7
+    },
+    {
+      "tSec": 200,
+      "rss": 452.6,
+      "heapUsed": 119.2,
+      "heapTotal": 190.3,
+      "external": 1.7
+    },
+    {
+      "tSec": 210,
+      "rss": 455.5,
+      "heapUsed": 224.1,
+      "heapTotal": 252.5,
+      "external": 1.7
+    },
+    {
+      "tSec": 220,
+      "rss": 453.4,
+      "heapUsed": 166.4,
+      "heapTotal": 193,
+      "external": 1.7
+    },
+    {
+      "tSec": 230,
+      "rss": 455.3,
+      "heapUsed": 255.3,
+      "heapTotal": 286.3,
+      "external": 1.7
+    },
+    {
+      "tSec": 240,
+      "rss": 453.9,
+      "heapUsed": 302.2,
+      "heapTotal": 333.8,
+      "external": 1.7
+    },
+    {
+      "tSec": 250,
+      "rss": 457.3,
+      "heapUsed": 243.6,
+      "heapTotal": 271.3,
+      "external": 1.7
+    },
+    {
+      "tSec": 260,
+      "rss": 454.8,
+      "heapUsed": 323.7,
+      "heapTotal": 355.8,
+      "external": 1.7
+    },
+    {
+      "tSec": 271,
+      "rss": 455.7,
+      "heapUsed": 292.1,
+      "heapTotal": 321.8,
+      "external": 1.7
+    },
+    {
+      "tSec": 280,
+      "rss": 454.3,
+      "heapUsed": 187.4,
+      "heapTotal": 217,
+      "external": 1.7
+    },
+    {
+      "tSec": 290,
+      "rss": 454.3,
+      "heapUsed": 216,
+      "heapTotal": 242.8,
+      "external": 1.7
+    },
+    {
+      "tSec": 300,
+      "rss": 455.6,
+      "heapUsed": 158.3,
+      "heapTotal": 198,
+      "external": 1.7
+    },
+    {
+      "tSec": 300,
+      "rss": 455.6,
+      "heapUsed": 158.3,
+      "heapTotal": 198,
+      "external": 1.7
+    }
+  ]
+}

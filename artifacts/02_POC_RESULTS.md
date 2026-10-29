@@ -180,3 +180,67 @@ All re-verified with the commands in section 2 after the changes (typecheck exit
 | N-1 (Medium) | FIXED. `redactPem` redacts a BEGIN without END from the BEGIN to the end of the text (still a linear scan). The assertion that expected the leak was flipped (`'-----BEGIN PRIVATE KEY----- no end here'` now gives `[REDACTED]`). New `tests/unit/buffer/key-material.spec.ts` uses real keys from `crypto.generateKeyPairSync` (RSA PKCS8): a 4096-bit key in an error message under `errorMessages: 'redacted'`, a key at the start of the message, a key cut mid-body by the cap, and 2048-bit and 4096-bit keys as attribute values (plain and wrapped). Every stored output is asserted free of any 40+ character base64 run and of the `MII` prefix. Reverting the fix makes 6 tests fail. |
 | O-a (Low) | FIXED. `capInput` drops the trailing partial token when a cut happened (used for messages, frame lines and attribute strings). Test: a 2048-bit PEM followed by `mongodb://admin:hunter2@...` with the 2048 cut falling inside `admin`: the stored message contains no `mongodb`, `admin`, `hunter2` or key material. Plus `capInput` unit cases. Reverting makes 2 tests fail. |
 | O-b (Low) | FIXED. The registry records `headerLines` before capping the message; the sanitizer skips that many lines. Tests: a message over 8192 chars with an `at ` line after the registry cut, and a 400-character class name, both under `omit`, store no message line; the hand-built-payload fallback is also tested. Reverting makes the long-message test fail. |
+
+
+## 13. Slice B (PRO sampler POC): final status after investigation (keep-alive, CR-001) and review round
+
+Author: tracelet-implementer (Sonnet), 2026-10-29. Not committed. Files: `src/profiling/{vendor/{cpu-sampler,fold-profile}.ts,inspector-probe.ts,profile-mapper.ts,profiler.service.ts,index.ts}`, `third_party/nestjs-observe/FORK_DELTA.profiling.md`, `tests/unit/profiling/*`, `tests/integration/poc/{t09,t10,t18}-*`, `tests/integration/profiling/keepalive-heap.int-spec.ts`, `tests/support/profiling/*`, `bench/profiling/sampler-overhead.int-spec.ts`. Not done (Mission 06): `metrics-collector.ts`, `vendor/runtime-metrics.ts`, `vendor/node-runtime-metrics.interface.ts`. The sampler mechanism is the keep-alive of `docs/tracelet-handoff/change-requests/CR-001-profiler-rotation-keepalive.md` (draft; the orchestrator approves).
+
+### 13.1 Final results (after the keep-alive and the review-round changes)
+
+| Check | Node | Result |
+|---|---|---|
+| typecheck, lint | 22.22.0 | exit 0, exit 0 |
+| unit suite | 22.22.0 / 20.19.5 / 24.22.2 | 12 files, **153 / 153 / 153** passed (profiling unit tests: 4 files, 61 tests) |
+| `tests/integration` (poc + profiling) + `tests/contract` | 22.22.0 | 16 files, **67 tests passed** (T09 1, T10 1, T18 5, keep-alive heap 2, contract 4, the 54 earlier poc tests) |
+| T09 + T10 + T18 + keep-alive heap test | 20.19.5 / 24.22.2 | 4 files, **9 tests passed** on each |
+| T09 (30 s CPU + allocation, 12 000 generated functions, windowMs 5000, 99 Hz) | 22.22.0, 10 consecutive runs | **10/10 passed**; every run 6/6 gaps contiguous, max gap 8.9-20.3 ms, coverage 0.9982-0.9990, start stall max 0.22-0.32 ms, stop max 1.30-1.54 ms, fold max 2.85-3.07 ms, 0 backoffs |
+| T09 final per-version run (log `artifacts/02_t09_run.final.node{20,22,24}.json`) | 20.19.5 / 22.22.0 / 24.22.2 | 6/6 contiguous each; max gap 10.5 / 11.5 / 11.7 ms; coverage 0.9986 / 0.9986 / 0.9990; start p50/max 0.26/0.46, 0.15/0.35, 0.15/0.32 ms; stop p50/max 1.72/8.90, 1.22/1.60, 1.46/5.28 ms; fold p50/max 2.12/3.04, 1.73/3.00, 2.18/3.82 ms |
+| T10 (30 s idle) final per-version run | 20.19.5 / 22.22.0 / 24.22.2 | 6/6 contiguous; max gap 10.4 / 9.6 / 10.6 ms; coverage 0.9993 / 0.9991 / 0.9993; idle samples > 0 in every window; state running |
+| T09/T10 added assertions | all | `debug.keepAlive === 'active'`; no stored frame holds an absolute path, drive letter, backslash, `../` or the OS user name |
+| keep-alive heap regression (`artifacts/02_keepalive_heap*.json`, Node 22, 150 MB heap, 3 rotations at 1200 ms) | 22.22.0 | with keep-alive: start stall 0.13-0.20 ms (asserted max < 20 ms); opted out (plain stop/start): start stall 275-290 ms, stop 14-15 ms (recorded, unasserted) |
+| 10x loop of the light profiling unit tests (earlier round, 33 tests) | 22.22.0 | 10/10 green; not repeated for the 61 tests of this round (the new tests were run once per Node version above) |
+
+The T09 bound (gap <= 250 ms, >= 5 of 6, coverage >= 0.95), `maxStallMs` 250 and every other threshold are unchanged. The contract files were not touched. The keep-alive option is internal/debug-only (`createKeepAlive`), not a `profiling.*` config field (the frozen config contract has no such field).
+
+### 13.2 Review-round items
+
+- M1: default keep-alive off under `NODE_V8_COVERAGE`, `--cpu-prof`/`--cpu-prof-*` in execArgv or NODE_OPTIONS and with injected sessions; per-window `keepAliveMs`; backoff reason hints "another inspector session has the Profiler enabled" when the keep-alive cost dominates. Unit-tested.
+- M2: `sanitizeFramePath` (no absolute paths, drive letters, UNC, user names, URL queries stored). The T09 fixture lives in `C:/Users/User/AppData/Local/Temp` while cwd is on `D:`; its frames are now `<external>/code-heavy.cjs:LINE`. The CpuProfile frame format (`fn relpath:line`) still validates against `telemetry.schema.json` (mapper unit tests).
+- M3: `ProfilerDebug.keepAlive` (`active`/`off`/`failed`, debug only, no contract change) plus the heap regression test above.
+- M4: this section, the CR memory correction and soak (13.4).
+- L1 (onWindow throw tears down before onError), L2 (initial-start/resume cost counters, documented), L3 (retry budget restored after 10 healthy windows), L4 (negative raw gaps counted), L5 (orderly stop never reports an error or retries), L6 (host `console.profile` note in the fork delta): done with unit tests.
+- L7: the profiler bench cannot resolve overhead below roughly 10 %; no overhead claim is made from it (below).
+
+### 13.3 Bench (Node 22.22.0, 12 000 functions, 16 s per run, off/on/off/on after a discarded warm-up; post-fix numbers, `artifacts/02_bench_profiler.json`)
+
+Throughput 9 553.1 (off) vs 10 438.3 (on) work units/s: +9.27 %, which is run-to-run noise or an ordering effect, not a speed-up; **no overhead claim is made** (the harness cannot resolve differences below about 10 %). ELU 1 in both (CPU-bound loop). Event-loop delay p99 5.79 / 6.77 ms (off) vs 5.49 / 5.50 ms (on); max 17.69 / 39.85 ms (off) vs 34.87 / 6.95 ms (on). Stall series over the 6 rotations of the on runs: start 0.12-0.46 ms (p50 0.14), stop 1.45-1.65 ms (p50 1.52), fold 1.94-3.56 ms (p50 2.24). NOT RUN on Node 20 or 24.
+
+### 13.4 Natural-GC soak (keep-alive vs plain stop/start), review M4
+
+Script in the scratchpad (not committed), compiled `dist` of the package, `node --expose-gc`, **no forced GC during the run**; one forced full GC after it. Both modes ran concurrently for 5 minutes on the same host (Node 22.22.0, windowMs 1000, `maxStallMs` disabled to avoid backoff, rolling ~100 MB retained set, short-lived garbage, 20 `new Function` per tick). Raw: `artifacts/02_soak_keepalive.json`, `artifacts/02_soak_plain.json` (10 s samples).
+
+| | keep-alive | plain stop/start |
+|---|---|---|
+| rotations in 5 min | 297 | 180 |
+| start stall p50 / max | 0.11 / 20.9 ms | 632.5 / 1670.6 ms |
+| stop stall p50 / max | 0.46 / 4.0 ms | 10.7 / 27.8 ms |
+| RSS, mean 30-90 s to last 90 s | 470.2 to 473.2 MB | 428.9 to 455.1 MB |
+| heapUsed, same | 221.3 to 214.6 MB | 179.2 to 229.8 MB |
+| heapTotal, same | 254.2 to 274.5 MB | 221.0 to 260.9 MB |
+| after final full GC: heapUsed / non-heap / RSS | 68.4 / 362.4 / 465.7 MB | 66.8 / 349.1 / 453.4 MB |
+
+Reading: no growth trend in keep-alive mode over 5 minutes; the post-GC difference is about 12-13 MB of non-heap memory. Caveats: the modes did different amounts of work (plain is slowed by its own stalls), 5 minutes cannot exclude slower growth, and the investigator's earlier 150 s harness (heavier churn, forced GC off) showed RSS 206 to 1295 MB and, after a full GC, heapUsed 53 MB and non-heap 208 MB (keep-alive) against 28 MB and 105 MB (plain): retained profiler state, not a proven leak. The earlier "154-162 MB RSS plateau" claim was measured with `global.gc()` forced every window and is withdrawn (CR-001 corrected).
+
+### 13.5 History: pre-fix results (plain stop/start, kept for the record)
+
+| Check | Node | Result |
+|---|---|---|
+| T10, T18 | 22 / 20 / 24 | passed (T10 gaps 26-40 ms, coverage 0.992-0.994) |
+| T09 | 22.22.0 | passed narrowly (6/6, max gap 248.1 ms, coverage 0.9600; start stall 177-220 ms); `artifacts/02_t09_run.node22.json` |
+| T09 | 20.19.5 | **failed**: 3 of 5 gap-bearing windows contiguous, coverage 0.826; backoff fired at start 247 + stop 51 + fold 2 = 299 ms > 250 for 3 windows; `artifacts/02_t09_run.node20.json` |
+| T09 | 24.22.2 | **failed**: 0 of 4, gaps 290-439 ms, coverage 0.812, two backoffs (start stall 253-396 ms); `artifacts/02_t09_run.node24.json` |
+| Bench (pre-fix) | 22.22.0 | throughput 9 724.7 vs 10 234.7 units/s (+5.2 %, same caveat), event-loop max 16-19 ms (off) vs 199-202 ms (on), stall series start 155-167 ms, stop 27-32 ms, fold 1.9-3.8 ms |
+| Intermediate keep-alive runs (investigation) | 20 / 22 / 24 | `artifacts/02_t09_run.keepalive.node{20,22,24}.json`, `02_t10_run.keepalive.node{20,22,24}.json` |
+
+Root cause and the fix are in CR-001: `Profiler.stop` disposes the V8 CpuProfiler when the started-profile count reaches 0 and the next `Profiler.start` rebuilds it with heap walks; the keep-alive profile holds the count above 0 across the rotation.

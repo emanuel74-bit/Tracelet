@@ -1,0 +1,176 @@
+{
+  "generatedAt": "2026-10-29T09:54:46.835Z",
+  "node": "v22.22.0",
+  "cpu": "Intel(R) Core(TM) i5-7400 CPU @ 3.00GHz",
+  "cores": 4,
+  "platform": "win32",
+  "fixture": {
+    "generatedFunctions": 12000
+  },
+  "config": {
+    "sampleRateHz": 99,
+    "windowMs": 5000,
+    "runMs": 16000,
+    "rounds": 2,
+    "order": "off, on, off, on (one discarded off warm-up first)"
+  },
+  "summary": {
+    "meanUnitsPerSecondOff": 9553.1,
+    "meanUnitsPerSecondOn": 10438.3,
+    "throughputDeltaPercent": 9.27,
+    "stallSeriesAllOnRuns": {
+      "startStallMs": {
+        "values": [
+          0.21,
+          0.14,
+          0.46,
+          0.12,
+          0.12,
+          0.12
+        ],
+        "p50": 0.14,
+        "max": 0.46
+      },
+      "stopStallMs": {
+        "values": [
+          1.52,
+          1.61,
+          1.46,
+          1.45,
+          1.65,
+          1.5
+        ],
+        "p50": 1.52,
+        "max": 1.65
+      },
+      "foldMs": {
+        "values": [
+          3.56,
+          2.2,
+          1.94,
+          2.24,
+          2.27,
+          2.08
+        ],
+        "p50": 2.24,
+        "max": 3.56
+      }
+    }
+  },
+  "runs": [
+    {
+      "sampler": false,
+      "wallMs": 16000.3,
+      "workUnits": 154975,
+      "allocChunks": 3099,
+      "unitsPerSecond": 9685.8,
+      "eventLoopUtilization": 1,
+      "eventLoopDelayMs": {
+        "p50": 5.01,
+        "p99": 5.79,
+        "max": 17.69
+      },
+      "windows": 0
+    },
+    {
+      "sampler": true,
+      "wallMs": 16000.1,
+      "workUnits": 166470,
+      "allocChunks": 3329,
+      "unitsPerSecond": 10404.3,
+      "eventLoopUtilization": 1,
+      "eventLoopDelayMs": {
+        "p50": 5,
+        "p99": 5.49,
+        "max": 34.87
+      },
+      "windows": 3,
+      "stallSeries": {
+        "startStallMs": {
+          "values": [
+            0.21,
+            0.14,
+            0.46
+          ],
+          "p50": 0.21,
+          "max": 0.46
+        },
+        "stopStallMs": {
+          "values": [
+            1.52,
+            1.61,
+            1.46
+          ],
+          "p50": 1.52,
+          "max": 1.61
+        },
+        "foldMs": {
+          "values": [
+            3.56,
+            2.2,
+            1.94
+          ],
+          "p50": 2.2,
+          "max": 3.56
+        }
+      }
+    },
+    {
+      "sampler": false,
+      "wallMs": 16000.3,
+      "workUnits": 150730,
+      "allocChunks": 3014,
+      "unitsPerSecond": 9420.4,
+      "eventLoopUtilization": 1,
+      "eventLoopDelayMs": {
+        "p50": 5,
+        "p99": 6.77,
+        "max": 39.85
+      },
+      "windows": 0
+    },
+    {
+      "sampler": true,
+      "wallMs": 16000.2,
+      "workUnits": 167560,
+      "allocChunks": 3351,
+      "unitsPerSecond": 10472.4,
+      "eventLoopUtilization": 1,
+      "eventLoopDelayMs": {
+        "p50": 5.01,
+        "p99": 5.5,
+        "max": 6.95
+      },
+      "windows": 3,
+      "stallSeries": {
+        "startStallMs": {
+          "values": [
+            0.12,
+            0.12,
+            0.12
+          ],
+          "p50": 0.12,
+          "max": 0.12
+        },
+        "stopStallMs": {
+          "values": [
+            1.45,
+            1.65,
+            1.5
+          ],
+          "p50": 1.5,
+          "max": 1.65
+        },
+        "foldMs": {
+          "values": [
+            2.24,
+            2.27,
+            2.08
+          ],
+          "p50": 2.24,
+          "max": 2.27
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,140 @@
+{
+  "node": "v24.22.2",
+  "states": [
+    "running"
+  ],
+  "continuity": {
+    "windows": 7,
+    "withGap": 6,
+    "contiguous": 6,
+    "gaps": [
+      0.85,
+      0.5,
+      10.62,
+      0.52,
+      0.5,
+      7.45
+    ],
+    "coverage": 0.9993230822267501,
+    "totalSpanMs": 30179.440999999642
+  },
+  "startStallMs": {
+    "values": [
+      0.27,
+      0.12,
+      0.26,
+      0.11,
+      0.1,
+      0.1
+    ],
+    "p50": 0.12,
+    "max": 0.27
+  },
+  "stopStallMs": {
+    "values": [
+      0.49,
+      0.4,
+      0.48,
+      0.44,
+      0.41,
+      0.39
+    ],
+    "p50": 0.44,
+    "max": 0.49
+  },
+  "foldMs": {
+    "values": [
+      1.37,
+      0.21,
+      0.2,
+      0.24,
+      0.25,
+      0.14
+    ],
+    "p50": 0.24,
+    "max": 1.37
+  },
+  "achievedSampleRateHz": [
+    94.14987460675937,
+    92.8358847229867,
+    93.54407658675892,
+    92.93656150311799,
+    92.40166322993814,
+    92.9052802635947,
+    95.20484910031418
+  ],
+  "windows": [
+    {
+      "seq": 0,
+      "final": false,
+      "sampleCount": 4,
+      "idleSampleCount": 468,
+      "totalSampleCount": 472,
+      "sampledSpanMs": 5003
+    },
+    {
+      "seq": 1,
+      "final": false,
+      "sampleCount": 1,
+      "idleSampleCount": 465,
+      "totalSampleCount": 466,
+      "sampledSpanMs": 5009,
+      "gapBeforeMs": 0.846
+    },
+    {
+      "seq": 2,
+      "final": false,
+      "sampleCount": 2,
+      "idleSampleCount": 466,
+      "totalSampleCount": 468,
+      "sampledSpanMs": 4992,
+      "gapBeforeMs": 0.499
+    },
+    {
+      "seq": 3,
+      "final": false,
+      "sampleCount": 3,
+      "idleSampleCount": 463,
+      "totalSampleCount": 466,
+      "sampledSpanMs": 5003,
+      "gapBeforeMs": 10.619
+    },
+    {
+      "seq": 4,
+      "final": false,
+      "sampleCount": 2,
+      "idleSampleCount": 461,
+      "totalSampleCount": 463,
+      "sampledSpanMs": 5000,
+      "gapBeforeMs": 0.516
+    },
+    {
+      "seq": 5,
+      "final": false,
+      "sampleCount": 1,
+      "idleSampleCount": 464,
+      "totalSampleCount": 465,
+      "sampledSpanMs": 4994,
+      "gapBeforeMs": 0.499
+    },
+    {
+      "seq": 6,
+      "final": true,
+      "sampleCount": 2,
+      "idleSampleCount": 14,
+      "totalSampleCount": 16,
+      "sampledSpanMs": 158,
+      "gapBeforeMs": 7.45
+    }
+  ],
+  "counters": {
+    "windows": 7,
+    "profilesOffered": 7,
+    "profilesRejected": 0,
+    "emptyWindows": 0,
+    "backoffs": 0,
+    "errors": 0,
+    "negativeGaps": 0,
+    "lastInitialStartMs": 56.634700000000066
+  }
+}
