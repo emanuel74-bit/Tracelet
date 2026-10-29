@@ -5,7 +5,7 @@ import { TRACELET_VERSION } from '../version';
  * Internal runtime ABI. Bump whenever the shape or behaviour of anything stored in the global slot changes
  * (runtime, registry, token, store keys), independently of the public contract version (plan 3.4, L-b).
  */
-export const TRACELET_RUNTIME_ABI = 1;
+export const TRACELET_RUNTIME_ABI = 2; // 2: the runtime in the slot gained `idleWaiters` (Mission 03). Bump on ANY slot-shape change.
 
 export type TraceletStore = Map<string, unknown>;
 

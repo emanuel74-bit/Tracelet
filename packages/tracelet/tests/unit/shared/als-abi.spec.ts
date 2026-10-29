@@ -34,7 +34,7 @@ describe('global slot ABI gate (shared/als.ts, plan 3.4)', () => {
     expect(als.traceletAls).not.toBe(foreign.als);
     expect(g[KEY]).toBe(foreign); // the first copy's slot is left alone
     expect(warn).toHaveBeenCalledTimes(1);
-    expect(String(warn.mock.calls[0][0])).toMatch(/abi=1.*abi=999/);
+    expect(String(warn.mock.calls[0][0])).toMatch(/abi=2.*abi=999/);
 
     const ctx = await import('../../../src/context/index.js');
     ctx.configureTracing({}); // no-op for an incompatible copy

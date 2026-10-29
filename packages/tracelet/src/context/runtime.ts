@@ -53,6 +53,10 @@ export interface TraceletRuntime {
   instrumentInstalled: boolean;
   /** Completions scheduled and not yet finished (test and shutdown aid). */
   pendingCompletions: number;
+  /** whenCompletionsIdle waiters, woken when pendingCompletions reaches 0. */
+  idleWaiters: Array<() => void>;
+  /** true after the first configureTracing: later calls without `enabled` keep the current value instead of re-enabling. */
+  configured?: boolean;
   sweeperTimer?: ReturnType<typeof setInterval>;
 }
 
@@ -72,6 +76,7 @@ function buildRuntime(deps: RuntimeDeps = {}): TraceletRuntime {
     diagnostics: deps.diagnostics ?? createDiagnostics('Tracelet'),
     instrumentInstalled: false,
     pendingCompletions: 0,
+    idleWaiters: [] as Array<() => void>,
   } as TraceletRuntime;
   rt.registry =
     deps.registry ??
@@ -99,7 +104,11 @@ export function getRuntime(): TraceletRuntime {
 export function configureTracing(cfg: Partial<TracingRuntimeConfig>): void {
   if (!isRuntimeCompatible()) return;
   const rt = getRuntime();
-  rt.config = { ...rt.config, ...cfg, enabled: cfg.enabled ?? true };
+  // The first call enables (default true); later calls without `enabled` (for example hooks only) keep the current value, so a
+  // shutdown `configureTracing({ enabled: false })` is never undone by a partial call.
+  const enabled = cfg.enabled ?? (rt.configured === true ? rt.config.enabled : true);
+  rt.configured = true;
+  rt.config = { ...rt.config, ...cfg, enabled };
 }
 
 /** Attaches the queue as the process counter sink. */

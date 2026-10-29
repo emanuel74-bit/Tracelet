@@ -16,4 +16,5 @@ export { CALLER_KEY, REGISTRY_KEY, ROOT_TOKEN_KEY, TRACE_ID_KEY } from './consta
 export type { RootToken } from './root-token.js';
 export { LogRedactor } from './vendor/log-redactor.js';
 export type { RedactionOptions } from './vendor/log-redactor.js';
+export { whenCompletionsIdle, MAX_IDLE_WAIT_MS } from './completion.js';
 export { runAndSettle, ignoreFailure } from './settle.js';

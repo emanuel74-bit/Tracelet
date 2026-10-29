@@ -107,6 +107,7 @@ export async function createAppFor(
 ): Promise<INestApplicationContext> {
   return NestFactory.createApplicationContext(module, {
     logger: false,
+    abortOnError: false,
     instrument: createTraceletInstrument(instrument),
   });
 }
@@ -115,6 +116,7 @@ export async function createAppFor(
 export async function createOrdersApp(instrument: TraceletInstrumentOptions = { enabled: true }): Promise<OrdersApp> {
   const app = await NestFactory.createApplicationContext(OrdersModule, {
     logger: false,
+    abortOnError: false,
     instrument: createTraceletInstrument(instrument),
   });
   return {

@@ -155,7 +155,7 @@ export function createInstanceDecorator(deps: InstanceDecoratorDeps) {
           try {
             // Same settle routine as roots and joined spans: value / throw identity, plain promise chained, other
             // promise watched on a side branch. Registry failures are swallowed inside.
-            return runAndSettle(() => call(this, args), onReturnValue, recordError);
+            return runAndSettle(named(frameName, () => call(this, args)), onReturnValue, recordError);
           } finally {
             spec.setActive(false);
           }

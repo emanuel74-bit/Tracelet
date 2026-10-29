@@ -5,6 +5,7 @@ import { isRuntimeCompatible, traceletAls, type TraceletStore } from '../shared/
 import { uuidv7 } from '../shared/uuid-v7.js';
 import { scheduleCompletion, scheduleSnapshot } from './completion.js';
 import { CALLER_KEY, REGISTRY_KEY, ROOT_TOKEN_KEY, TRACE_ID_KEY } from './constants.js';
+import { capRawAttributes } from './raw-attributes.js';
 import { isJoinable, type RootToken } from './root-token.js';
 import { countSafely, getRuntime, recordRootOnce, type TraceletRuntime } from './runtime.js';
 import { ignoreFailure, runAndSettle, tryValue } from './settle.js';
@@ -108,7 +109,7 @@ function prepareRoot(rt: TraceletRuntime, name: string, kind: ExecutionKind, opt
   const cfg = rt.config;
   const startedAt = Date.now();
   const startPerf = performance.now();
-  const attributes = options?.attributes ? { ...options.attributes } : undefined;
+  const attributes = capRawAttributes(options?.attributes);
 
   let sampled = rt.admission.shouldSample();
   if (!sampled) {

@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "../../../../node_modules/.cache/tracelet-example",
+    "rootDir": "../..",
+    "sourceMap": false
+  },
+  "include": ["./*.ts", "../../src/**/*.ts"]
+}

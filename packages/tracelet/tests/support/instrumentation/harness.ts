@@ -1,4 +1,4 @@
-import { BoundedTelemetryQueue, toTraceItem } from '../../../src/buffer/index.js';
+import { BoundedTelemetryQueue, createBufferHooks, RollupAccumulator, toTraceItem } from '../../../src/buffer/index.js';
 import type { TelemetryQueueLimits } from '../../../src/buffer/index.js';
 import {
   createRuntimeForTesting,
@@ -8,7 +8,7 @@ import {
   type TraceletRuntime,
   type TracingRuntimeConfig,
 } from '../../../src/context/index.js';
-import type { ObserveSpan, TraceItem } from '../../../src/contracts/index.js';
+import type { ObserveSpan, RollupItem, TraceItem } from '../../../src/contracts/index.js';
 import { sleep } from './orders-app.js';
 
 export interface Harness {
@@ -16,6 +16,10 @@ export interface Harness {
   queue: BoundedTelemetryQueue;
   /** All trace items produced so far (drained from the queue). */
   items: TraceItem[];
+  /** Rollup accumulator wired through createBufferHooks (only with `rollups: true`). */
+  rollups?: RollupAccumulator;
+  /** Rollup items drained so far (only with `rollups: true`). */
+  rollupItems: RollupItem[];
   /** Waits until all scheduled completions finished and the registry is empty, then collects the queue. */
   settle(timeoutMs?: number): Promise<TraceItem[]>;
   stop(): void;
@@ -27,6 +31,9 @@ export interface HarnessOptions {
   errorMessages?: 'redacted' | 'omit';
   completionTimeoutMs?: number;
   runtime?: Omit<RuntimeDeps, 'sink' | 'config'>;
+  /** Wire the real buffer hooks (mapper + RollupAccumulator) instead of the mapper-only hook. */
+  rollups?: boolean;
+  mapper?: { maxSpansPerTrace?: number; spanCollapse?: false | { threshold: number; keepSlowest: number } };
 }
 
 /** Wires runtime + real mapper + bounded queue, the same hand-off the integration layer will do. */
@@ -34,6 +41,18 @@ export function startHarness(options: HarnessOptions = {}): Harness {
   const queue = new BoundedTelemetryQueue(options.queue);
   const redactor = new LogRedactor();
   const items: TraceItem[] = [];
+  const rollupItems: RollupItem[] = [];
+  const mapper = {
+    serviceName: 'poc',
+    instanceId: 'poc-instance',
+    errorMessages: options.errorMessages ?? ('redacted' as const),
+    redactor,
+    ...options.mapper,
+  };
+  const rollups = options.rollups
+    ? new RollupAccumulator({ serviceName: 'poc', instanceId: 'poc-instance', offer: (i) => queue.offer(i), defer: () => {} })
+    : undefined;
+  const hooks = rollups ? createBufferHooks({ queue, rollups, mapper }) : undefined;
   const rt = createRuntimeForTesting({
     ...options.runtime,
     sink: queue,
@@ -43,26 +62,25 @@ export function startHarness(options: HarnessOptions = {}): Harness {
       sampleRate: 1,
       maxRootsPerSecond: 100_000,
       ...options.tracing,
-      onTraceComplete: (snapshot) => {
-        const item = toTraceItem(snapshot, {
-          serviceName: 'poc',
-          instanceId: 'poc-instance',
-          errorMessages: options.errorMessages ?? 'redacted',
-          redactor,
-        });
-        queue.offer(item);
-      },
+      ...(hooks ?? {
+        onTraceComplete: (snapshot: Parameters<typeof toTraceItem>[0]) => {
+          queue.offer(toTraceItem(snapshot, mapper));
+        },
+      }),
     },
   });
   const collect = (): void => {
     for (const item of queue.drain(1_000_000, Number.MAX_SAFE_INTEGER)) {
       if (item.type === 'trace') items.push(item);
+      else if (item.type === 'rollup') rollupItems.push(item);
     }
   };
   return {
     rt,
     queue,
     items,
+    ...(rollups ? { rollups } : {}),
+    rollupItems,
     async settle(timeoutMs = 10_000) {
       const deadline = Date.now() + timeoutMs;
       // Two quiet polls in a row: completions may schedule nothing further, but timers need a turn to be armed.

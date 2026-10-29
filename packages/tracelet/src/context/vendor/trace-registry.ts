@@ -105,6 +105,8 @@ interface InternalSnapshot {
   spanCount: number;
   /** Spans started and not yet ended; released from the global budget at end or pluck. */
   openSpans: number;
+  /** Set while a pluck waits for open spans: called when the LAST open span ends (O-2 early resolve). */
+  completionWaiter?: () => void;
 }
 
 const MAX_RAW_MESSAGE = 8192;
@@ -444,6 +446,9 @@ export class TraceRegistry {
     snapshot.refsMarkedAsComplete += 1;
     snapshot.openSpans -= 1;
     this.openSpanTotal -= 1;
+    if (snapshot.completionWaiter !== undefined && snapshot.refsCounter === snapshot.refsMarkedAsComplete) {
+      snapshot.completionWaiter();
+    }
 
     if (failed) {
       // Origin tracking: the first span to end with this error value gets the payload, ancestors get `true`.
@@ -485,7 +490,18 @@ export class TraceRegistry {
     if (snapshot.refsCounter > snapshot.refsMarkedAsComplete) {
       this.awaitingCompletion += 1;
       try {
-        await new Promise((resolve) => setTimeout(resolve, this.deps.completionTimeoutMs ?? SNAPSHOT_COMPLETION_TIMEOUT_MS));
+        // O-2: resolve as soon as the last open span ends; the timeout is only the ceiling (unref'd: it never keeps the process alive).
+        await new Promise<void>((resolve) => {
+          const waiting = snapshot;
+          const timer = setTimeout(() => finish(), this.deps.completionTimeoutMs ?? SNAPSHOT_COMPLETION_TIMEOUT_MS);
+          timer.unref();
+          const finish = (): void => {
+            clearTimeout(timer);
+            waiting.completionWaiter = undefined;
+            resolve();
+          };
+          waiting.completionWaiter = finish;
+        });
       } finally {
         this.awaitingCompletion -= 1;
       }
