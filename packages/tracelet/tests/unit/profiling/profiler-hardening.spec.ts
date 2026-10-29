@@ -202,3 +202,26 @@ describe('L5 orderly stop is not an inspector fault', () => {
     expect(sessions).toHaveLength(1);
   });
 });
+
+describe('retry racing stop()', () => {
+  it('a stop() during the retry start leaves no live sampler and the state stopped', async () => {
+    const { profiler, sessions } = profilerWith((n, clock) => {
+      if (n === 0) return new FakeSession({ clock, failMethod: { method: 'Profiler.stop', atCall: 0 } });
+      const s = new FakeSession({ clock });
+      const post = s.post.bind(s);
+      s.post = (m, p, cb) => {
+        if (m === 'Profiler.enable') setTimeout(() => post(m, p, cb), 150);
+        else post(m, p, cb);
+      };
+      return s;
+    });
+    await profiler.start();
+    await until(() => sessions.length === 2);
+    await profiler.stop();
+    await until(() => sessions[1].disconnected, 3000);
+    expect(profiler.profilerHealth().state).toBe('stopped');
+    const n = sessions[1].calls.length;
+    await sleep(WINDOW * 4);
+    expect(sessions[1].calls.length).toBe(n);
+  });
+});

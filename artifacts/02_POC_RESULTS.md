@@ -1,6 +1,6 @@
 # 02 — POC results, Mission 02 slice A (instrumentation + LEAD scaffold)
 
-Author: tracelet-implementer (Sonnet), 2026-10-29. Worktree `D:\codeShit\Tracelet-wt\m02`, branch `tracelet/m02-poc`. **Nothing is committed.**
+Author: tracelet-implementer (Sonnet), 2026-10-29. Worktree `D:\codeShit\Tracelet-wt\m02`, branch `tracelet/m02-poc`. Slice A is committed as `b3fb412`, slice B as `c9225a0` (round-2 changes after that are uncommitted until the orchestrator commits).
 Scope of this slice: LEAD scaffold + INS files (`src/shared`, `src/context`, `src/instrumentation`, `src/buffer/{self-time,record-mapper,error-sanitizer,telemetry-queue,attributes}.ts` + `buffer/vendor/collapse-repeated-spans.ts`) + the INS POC tests and benchmark.
 **Not in this slice (slice B / later):** profiling (T09, T10, T18, `bench/profiling`), Mongo, HTTP, UI, `buffer/{histogram,rollups}.ts`, ported upstream specs (plan 3.12 list), `tests/integration/instrumentation/*` (Mission 03).
 Gate G0 (host compatibility) remains UNVERIFIED (D1 deferred); everything here is proven on the stated baseline in a fixture app.
@@ -57,7 +57,7 @@ Mutation controls (to show the tests are not vacuous; each mutation was reverted
 | egress `egress-none` | PASS | spies on `net.Socket.prototype.connect`, `tls.connect`, `http.request`, `https.request`, `globalThis.fetch`, `dns.lookup`: zero calls during a 22-message scenario with errors |
 | T06-T08 `edge-providers` | RECORDED (not gating) | see section 5 |
 | T20 seed `bench/instrumentation/overhead` | RECORDED | see section 6 |
-| T09, T10, T18 (profiler) | NOT RUN | PRO / slice B |
+| T09, T10, T18 (profiler) | PASS (slice B, `c9225a0`) | originally NOT RUN in slice A; results in section 13 and section 14 |
 | contract `contracts-sync` | PASS | 3 copies equal to the kit files and to the SHA-256 recorded in the freeze doc (compared after CRLF to LF normalisation, see D5) |
 | flaky | none observed | 10/10 repetitions of t02/h6/r1/m7 and 3 full-suite runs on Node 22 (+1 each on Node 20 and 24) |
 
@@ -139,9 +139,9 @@ Stage 00 indicative 0.17 / 0.80 / 19.8 µs per call: off and on-untraced agree; 
 | 10/10 repetitions green | PASS |
 | bench recorded | DONE (INS half; the profiler bench is PRO) |
 | edge-provider behaviour recorded | DONE |
-| fork delta and LICENSE committed with the first vendored file | files exist in the worktree (`third_party/nestjs-observe/{LICENSE,PIN.md,FORK_DELTA.instrumentation.md}`); they must go into the same commit as the vendored sources (not committed by me) |
+| fork delta and LICENSE committed with the first vendored file | files exist in the worktree (`third_party/nestjs-observe/{LICENSE,PIN.md,FORK_DELTA.instrumentation.md}`); committed with the vendored sources in `b3fb412`; the profiling fork delta `FORK_DELTA.profiling.md` is committed in `c9225a0` |
 | no unbounded buffer (queue caps asserted in a unit test) | PASS (`telemetry-queue.spec.ts`: 100 000-trace flood stays at the caps; control pool caps hold over 500 mixed offers) |
-| T09, T10, T18 | NOT RUN (slice B) |
+| T09, T10, T18 | PASS in slice B (`c9225a0`), see section 13 and 14 |
 
 
 ## 10. Review round 1 (APPROVE-WITH-CHANGES): per-item results
@@ -184,7 +184,7 @@ All re-verified with the commands in section 2 after the changes (typecheck exit
 
 ## 13. Slice B (PRO sampler POC): final status after investigation (keep-alive, CR-001) and review round
 
-Author: tracelet-implementer (Sonnet), 2026-10-29. Not committed. Files: `src/profiling/{vendor/{cpu-sampler,fold-profile}.ts,inspector-probe.ts,profile-mapper.ts,profiler.service.ts,index.ts}`, `third_party/nestjs-observe/FORK_DELTA.profiling.md`, `tests/unit/profiling/*`, `tests/integration/poc/{t09,t10,t18}-*`, `tests/integration/profiling/keepalive-heap.int-spec.ts`, `tests/support/profiling/*`, `bench/profiling/sampler-overhead.int-spec.ts`. Not done (Mission 06): `metrics-collector.ts`, `vendor/runtime-metrics.ts`, `vendor/node-runtime-metrics.interface.ts`. The sampler mechanism is the keep-alive of `docs/tracelet-handoff/change-requests/CR-001-profiler-rotation-keepalive.md` (draft; the orchestrator approves).
+Author: tracelet-implementer (Sonnet), 2026-10-29. Committed as `c9225a0` (round-2 follow-ups of section 14 are uncommitted until the orchestrator commits). Files: `src/profiling/{vendor/{cpu-sampler,fold-profile}.ts,inspector-probe.ts,profile-mapper.ts,profiler.service.ts,index.ts}`, `third_party/nestjs-observe/FORK_DELTA.profiling.md`, `tests/unit/profiling/*`, `tests/integration/poc/{t09,t10,t18}-*`, `tests/integration/profiling/keepalive-heap.int-spec.ts`, `tests/support/profiling/*`, `bench/profiling/sampler-overhead.int-spec.ts`. Not done (Mission 06): `metrics-collector.ts`, `vendor/runtime-metrics.ts`, `vendor/node-runtime-metrics.interface.ts`. The sampler mechanism is the keep-alive of `docs/tracelet-handoff/change-requests/CR-001-profiler-rotation-keepalive.md` (APPROVED by the orchestrator).
 
 ### 13.1 Final results (after the keep-alive and the review-round changes)
 
@@ -218,19 +218,19 @@ Throughput 9 553.1 (off) vs 10 438.3 (on) work units/s: +9.27 %, which is run-to
 
 ### 13.4 Natural-GC soak (keep-alive vs plain stop/start), review M4
 
-Script in the scratchpad (not committed), compiled `dist` of the package, `node --expose-gc`, **no forced GC during the run**; one forced full GC after it. Both modes ran concurrently for 5 minutes on the same host (Node 22.22.0, windowMs 1000, `maxStallMs` disabled to avoid backoff, rolling ~100 MB retained set, short-lived garbage, 20 `new Function` per tick). Raw: `artifacts/02_soak_keepalive.json`, `artifacts/02_soak_plain.json` (10 s samples).
+Script `bench/profiling/soak.cjs` (reproducible: `npx tsc -p tsconfig.build.json`, then `node --expose-gc bench/profiling/soak.cjs <keepalive|plain> 5 <out.json>`), compiled `dist` of the package, `node --expose-gc`, **no forced GC during the run**; one forced full GC after it. Both modes ran concurrently for 5 minutes on the same host (Node 22.22.0, windowMs 1000, `maxStallMs` disabled to avoid backoff, rolling ~100 MB retained set, short-lived garbage, 20 `new Function` per tick). Raw: `artifacts/02_soak_keepalive.json`, `artifacts/02_soak_plain.json` (10 s samples).
 
 | | keep-alive | plain stop/start |
 |---|---|---|
 | rotations in 5 min | 297 | 180 |
 | start stall p50 / max | 0.11 / 20.9 ms | 632.5 / 1670.6 ms |
 | stop stall p50 / max | 0.46 / 4.0 ms | 10.7 / 27.8 ms |
-| RSS, mean 30-90 s to last 90 s | 470.2 to 473.2 MB | 428.9 to 455.1 MB |
+| RSS, mean of the 10 s samples in 30-90 s, then in the last 90 s (artifact fields `trend.*.min30to90s` and `trend.*.last90s`; despite the name `min30to90s` is a mean over the minute window 30-90 s, not a minimum) | 470.2 to 473.2 MB | 428.9 to 455.1 MB |
 | heapUsed, same | 221.3 to 214.6 MB | 179.2 to 229.8 MB |
 | heapTotal, same | 254.2 to 274.5 MB | 221.0 to 260.9 MB |
 | after final full GC: heapUsed / non-heap / RSS | 68.4 / 362.4 / 465.7 MB | 66.8 / 349.1 / 453.4 MB |
 
-Reading: no growth trend in keep-alive mode over 5 minutes; the post-GC difference is about 12-13 MB of non-heap memory. Caveats: the modes did different amounts of work (plain is slowed by its own stalls), 5 minutes cannot exclude slower growth, and the investigator's earlier 150 s harness (heavier churn, forced GC off) showed RSS 206 to 1295 MB and, after a full GC, heapUsed 53 MB and non-heap 208 MB (keep-alive) against 28 MB and 105 MB (plain): retained profiler state, not a proven leak. The earlier "154-162 MB RSS plateau" claim was measured with `global.gc()` forced every window and is withdrawn (CR-001 corrected).
+Reading: no growth trend in keep-alive mode over 5 minutes; the post-GC difference is about 12-13 MB of non-heap memory. Caveats: the modes did different amounts of work (plain is slowed by its own stalls), 5 minutes cannot exclude slower growth, and two earlier harness runs by the REVIEWER, which are different runs and must not be merged: (a) a 150 s run in keep-alive (bracket) mode without forced GC, RSS 206 to 1295 MB; (b) a separate 120 s fixed-rate run, where after a final full GC bracket mode kept heapUsed 53 MB and non-heap 208 MB against 28 MB and 105 MB for plain stop/start. Both indicate retained profiler state while the profiler is alive, not a proven leak; the 5-minute soak above is a third, independent measurement and shows no growth trend. The earlier "154-162 MB RSS plateau" claim was measured with `global.gc()` forced every window and is withdrawn (CR-001 corrected).
 
 ### 13.5 History: pre-fix results (plain stop/start, kept for the record)
 
@@ -244,3 +244,19 @@ Reading: no growth trend in keep-alive mode over 5 minutes; the post-GC differen
 | Intermediate keep-alive runs (investigation) | 20 / 22 / 24 | `artifacts/02_t09_run.keepalive.node{20,22,24}.json`, `02_t10_run.keepalive.node{20,22,24}.json` |
 
 Root cause and the fix are in CR-001: `Profiler.stop` disposes the V8 CpuProfiler when the started-profile count reaches 0 and the next `Profiler.start` rebuilds it with heap walks; the keep-alive profile holds the count above 0 across the rotation.
+
+
+## 14. Stage 02 gate follow-ups (round 2, after `c9225a0`; uncommitted until the orchestrator commits)
+
+Changes: `sanitizeFramePath` no longer leaks credentials/host/port/query for path-less URLs (parsed with `new URL()`, basename of the pathname only, else `unknown`), collapses `.`/`..` with `posix.normalize` before the cwd test, maps `data:` to `<external>/data`; `ContinuousProfiler.retry()` honours a `stop()` that happened during the retry start (no live sampler left, state `stopped`); soak script added as `packages/tracelet/bench/profiling/soak.cjs`. New unit tests: 4 (path cases x3 groups, retry-races-stop).
+
+| Check | Node | Exact result |
+|---|---|---|
+| typecheck, lint | 22.22.0 | exit 0, exit 0 |
+| unit suite | 22.22.0 / 20.19.5 / 24.22.2 | 12 files, 157 / 157 / 157 passed |
+| `tests/integration/poc` + `tests/integration/profiling` + `tests/contract` | 22.22.0 / 20.19.5 / 24.22.2 | 16 files, 67 tests passed on each |
+| 10x loop of t02, h6, r1, m7 | 22.22.0 | 10/10 runs green, 4 files / 33 tests each |
+| T09 x5 | 22.22.0 | 5/5 passed; 6/6 gaps contiguous each, max gap 7.4-10.5 ms, coverage 0.9987-0.9992, start stall max 0.21-0.27 ms, 0 backoffs |
+| NOT RUN | | none. The bench was not re-run in this round. |
+
+`artifacts/02_bench_overhead.json` and `02_edge_providers.json` were restored with `git checkout --` after the integration runs.

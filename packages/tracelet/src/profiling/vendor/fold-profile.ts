@@ -1,5 +1,5 @@
 // Adapted from nestjs/observe@7500fba (MIT, Copyright (c) 2017-present Kamil Mysliwiec). Changes: see third_party/nestjs-observe/FORK_DELTA.profiling.md
-import { basename } from 'node:path';
+import { posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /** The shape `Profiler.stop` returns over the inspector protocol. */
@@ -94,10 +94,20 @@ export function sanitizeFramePath(url: string, cwd: string): string {
     }
   } else if (/^[a-z][a-z0-9+.-]+:/i.test(url)) {
     if (url.startsWith('node:')) return url; // node:internal/..., kept verbatim
-    p = url.slice(url.indexOf(':') + 1).split('?')[0].split('#')[0]; // other schemes (data:, http:, webpack:): never stored verbatim, no query/credentials
-    return `${EXTERNAL}/${basename(slashes(p)) || 'unknown'}`;
+    // other schemes (data:, http:, webpack:): never stored verbatim; no credentials, host, query or code
+    if (url.startsWith('data:')) return `${EXTERNAL}/data`;
+    let pathname = '';
+    try {
+      if (url.includes('://')) pathname = new URL(url).pathname; // opaque schemes (mailto:, urn:) carry no file path
+    } catch {
+      pathname = '';
+    }
+    const last = pathname.split('/').filter((x) => x.length > 0 && x !== '..').pop();
+    return `${EXTERNAL}/${last ?? 'unknown'}`;
   }
   let n = slashes(p);
+  // collapse '.'/'..' first so a non-normalized path cannot smuggle a traversal past the cwd test
+  n = posix.normalize(n);
   if (n.length >= 4 && n[0] === '/' && isDrive(n.slice(1))) n = n.slice(1); // /C:/x from a file URL parsed on posix
   const c = slashes(cwd).replace(/\/+$/, '');
   if (isAbsoluteAny(n)) {

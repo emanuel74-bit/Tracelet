@@ -216,3 +216,31 @@ describe('sanitizeFramePath (M2: no absolute paths, drive letters or user names 
     expect(text).not.toMatch(/Alice|Users|[A-Za-z]:\/|elsewhere/);
   });
 });
+
+describe('sanitizeFramePath round 2 (credentials without a path, non-normalized paths, data: urls)', () => {
+  const cwd = '/srv/app';
+  const BS = String.fromCharCode(92);
+
+  it('a URL with no path never leaks credentials, host, port or query', () => {
+    for (const u of ['https://user:pass@cdn.example.com', 'https://user:pass@cdn.example.com/', 'http://alice:pw@h:8080?x=1', 'http://alice:pw@h:8080#frag']) {
+      const r = sanitizeFramePath(u, cwd);
+      expect(r, u).toBe('<external>/unknown');
+      expect(r).not.toMatch(/alice|user|pass|pw|example|8080|x=1/);
+    }
+    expect(sanitizeFramePath('https://u:p@cdn.example.com/a/b/app.js?t=1#h', cwd)).toBe('<external>/app.js');
+    expect(sanitizeFramePath('not-a-url:::', cwd)).toBe('<external>/unknown');
+  });
+
+  it('non-normalized paths are collapsed before the cwd test', () => {
+    expect(sanitizeFramePath('/srv/app/../../home/alice/x.js', cwd)).toBe('<external>/x.js');
+    expect(sanitizeFramePath('src/../../../home/alice/x.js', cwd)).toBe('<external>/x.js');
+    expect(sanitizeFramePath('a' + BS + '..' + BS + '..' + BS + 'Users' + BS + 'alice' + BS + 'x.js', 'C:/work')).toBe('<external>/x.js');
+    expect(sanitizeFramePath('/srv/app/src/./a/../b.js', cwd)).toBe('src/b.js');
+    expect(sanitizeFramePath('file:///srv/app/x/../../../etc/passwd', cwd)).toBe('<external>/passwd');
+  });
+
+  it('data: urls never keep code', () => {
+    expect(sanitizeFramePath('data:text/javascript,const k=1', cwd)).toBe('<external>/data');
+    expect(sanitizeFramePath('data:application/json;base64,AAAA', cwd)).toBe('<external>/data');
+  });
+});

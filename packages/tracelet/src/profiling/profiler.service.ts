@@ -397,6 +397,15 @@ export class ContinuousProfiler implements ProfilerHealthSource {
     if (this.state !== 'error') return;
     const before = this.reason;
     await this.startSampler();
+    if (this.stopping) {
+      // stop() ran while the retry was starting: do not leave a live sampler behind
+      const late = this.sampler;
+      this.sampler = undefined;
+      await late?.stop();
+      this.state = 'stopped';
+      this.reason = undefined;
+      return;
+    }
     if ((this.state as ProfilerState) === 'unavailable') {
       this.state = 'error';
       this.reason = `${before ?? 'inspector error'}; retry failed (${this.reason}), profiling stays off until restart`;
