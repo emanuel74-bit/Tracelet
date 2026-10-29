@@ -1,0 +1,283 @@
+openapi: 3.1.0
+info:
+  title: Tracelet embedded query API
+  version: 1.0.0
+  summary: FROZEN v1 candidate - pending independent review (artifacts/01_CONTRACT_FREEZE.md).
+  description: |
+    Read-only query API served by every Tracelet instance under `{basePath}/api/v1` (default basePath `/observe`).
+    Same authorization as the dashboard assets (authorize() or loopback-only default); every route answers
+    403 FORBIDDEN before any storage access when not authorized. No ingest/write endpoint exists.
+    All list endpoints are bounded: default limit 50, max 100; time windows are capped per route.
+    Missing `to` = now; missing `from` = to - 1 hour. `from` must be < `to`.
+    Unknown query parameters are rejected with 400 INVALID_QUERY. Only GET and HEAD are allowed (405 otherwise).
+    Every response carries `Cache-Control: no-store` and `X-Content-Type-Options: nosniff`.
+    Schemas are defined once in telemetry.schema.json ($defs) and referenced here.
+  license:
+    name: Internal
+    identifier: LicenseRef-Internal
+servers:
+  - url: /observe/api/v1
+    description: Default mount; basePath is configurable via Tracelet.setup({ path }).
+security: []
+tags:
+  - name: discovery
+    description: Services and instances known from heartbeats.
+  - name: traces
+    description: Stored traces, spans and error groups.
+  - name: profiles
+    description: Continuous CPU sample windows and flame graphs (statistical, per instance, never per trace).
+  - name: stats
+    description: Aggregates from per-minute rollups.
+  - name: health
+    description: Per-instance collector, profiler, buffer and storage state.
+paths:
+  /services:
+    get:
+      tags: [discovery]
+      operationId: listServices
+      summary: Services that have a heartbeat within instancesHours retention.
+      responses:
+        '200':
+          description: Services
+          content:
+            application/json:
+              schema: { $ref: './telemetry.schema.json#/$defs/ServiceList' }
+        '4XX': { $ref: '#/components/responses/Error' }
+        '5XX': { $ref: '#/components/responses/Error' }
+  /instances:
+    get:
+      tags: [discovery]
+      operationId: listInstances
+      summary: Instances (process boots) from heartbeats, newest lastSeenAt first, max 500.
+      parameters:
+        - $ref: '#/components/parameters/service'
+      responses:
+        '200':
+          description: Instances
+          content:
+            application/json:
+              schema: { $ref: './telemetry.schema.json#/$defs/InstanceList' }
+        '4XX': { $ref: '#/components/responses/Error' }
+        '5XX': { $ref: '#/components/responses/Error' }
+  /overview:
+    get:
+      tags: [stats]
+      operationId: getOverview
+      summary: Execution counts (all settled roots, not sampled) and approximate percentiles from operation_rollups. Window max 7 days.
+      parameters:
+        - $ref: '#/components/parameters/service'
+        - $ref: '#/components/parameters/instanceId'
+        - $ref: '#/components/parameters/from'
+        - $ref: '#/components/parameters/to'
+      responses:
+        '200':
+          description: Overview
+          content:
+            application/json:
+              schema: { $ref: './telemetry.schema.json#/$defs/Overview' }
+        '4XX': { $ref: '#/components/responses/Error' }
+        '5XX': { $ref: '#/components/responses/Error' }
+  /methods:
+    get:
+      tags: [stats]
+      operationId: listMethods
+      summary: Per class.method stats from method_rollups (sampled traces only). Window max 7 days, max 500 rows sorted by total duration desc.
+      description: |
+        `search` is a case-insensitive literal substring match on `operation` (`Class.method`), applied in process to
+        the rows aggregated for the (capped) window. It is never sent to Mongo as a regex.
+      parameters:
+        - $ref: '#/components/parameters/service'
+        - $ref: '#/components/parameters/instanceId'
+        - $ref: '#/components/parameters/from'
+        - $ref: '#/components/parameters/to'
+        - $ref: '#/components/parameters/search'
+      responses:
+        '200':
+          description: Method stats
+          content:
+            application/json:
+              schema: { $ref: './telemetry.schema.json#/$defs/MethodStatsList' }
+        '4XX': { $ref: '#/components/responses/Error' }
+        '5XX': { $ref: '#/components/responses/Error' }
+  /traces:
+    get:
+      tags: [traces]
+      operationId: listTraces
+      summary: Seek-paginated trace summaries ordered by (startedAt desc, traceId desc). Window max 7 days.
+      description: |
+        `search`: if the value has the uuidv7 shape
+        (`^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$`) the query is `_id` equality only;
+        otherwise it is a case-sensitive anchored prefix on `operation` built from the escaped literal (served by the
+        `{serviceName, operation, startedAt, _id}` index when `service` is given). Never a free regex.
+        The cursor is bound to the filter set; reusing it with different filters returns 400 INVALID_CURSOR.
+      parameters:
+        - $ref: '#/components/parameters/service'
+        - $ref: '#/components/parameters/instanceId'
+        - name: status
+          in: query
+          schema: { $ref: './telemetry.schema.json#/$defs/ExecutionStatus' }
+        - name: kind
+          in: query
+          schema: { $ref: './telemetry.schema.json#/$defs/ExecutionKind' }
+        - $ref: '#/components/parameters/search'
+        - $ref: '#/components/parameters/from'
+        - $ref: '#/components/parameters/to'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/cursor'
+      responses:
+        '200':
+          description: Page of traces
+          content:
+            application/json:
+              schema: { $ref: './telemetry.schema.json#/$defs/TracePage' }
+        '4XX': { $ref: '#/components/responses/Error' }
+        '5XX': { $ref: '#/components/responses/Error' }
+  /traces/{traceId}:
+    get:
+      tags: [traces]
+      operationId: getTrace
+      summary: One trace with all stored spans ordered by (startOffsetMs asc, spanId asc); at most 5000 spans.
+      parameters:
+        - name: traceId
+          in: path
+          required: true
+          schema: { $ref: './telemetry.schema.json#/$defs/TraceId' }
+      responses:
+        '200':
+          description: Trace detail
+          content:
+            application/json:
+              schema: { $ref: './telemetry.schema.json#/$defs/TraceDetail' }
+        '4XX': { $ref: '#/components/responses/Error' }
+        '5XX': { $ref: '#/components/responses/Error' }
+  /errors:
+    get:
+      tags: [traces]
+      operationId: listErrorGroups
+      summary: Error groups by errorFingerprint over failed traces. Window max 24 hours; at most 10000 traces scanned (truncated=true beyond).
+      parameters:
+        - $ref: '#/components/parameters/service'
+        - $ref: '#/components/parameters/instanceId'
+        - $ref: '#/components/parameters/from'
+        - $ref: '#/components/parameters/to'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/cursor'
+      responses:
+        '200':
+          description: Error groups ordered by (count desc, fingerprint asc)
+          content:
+            application/json:
+              schema: { $ref: './telemetry.schema.json#/$defs/ErrorGroupPage' }
+        '4XX': { $ref: '#/components/responses/Error' }
+        '5XX': { $ref: '#/components/responses/Error' }
+  /profiles:
+    get:
+      tags: [profiles]
+      operationId: listProfiles
+      summary: Profile window summaries (no stacks) ordered by (periodStart desc, profileId desc). Window max 7 days.
+      parameters:
+        - $ref: '#/components/parameters/service'
+        - $ref: '#/components/parameters/instanceId'
+        - $ref: '#/components/parameters/from'
+        - $ref: '#/components/parameters/to'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/cursor'
+      responses:
+        '200':
+          description: Page of profile summaries
+          content:
+            application/json:
+              schema: { $ref: './telemetry.schema.json#/$defs/ProfileSummaryPage' }
+        '4XX': { $ref: '#/components/responses/Error' }
+        '5XX': { $ref: '#/components/responses/Error' }
+  /profiles/{profileId}/flamegraph:
+    get:
+      tags: [profiles]
+      operationId: getProfileFlamegraph
+      summary: Folded stacks of one profile window.
+      parameters:
+        - name: profileId
+          in: path
+          required: true
+          schema: { $ref: './telemetry.schema.json#/$defs/Id' }
+      responses:
+        '200':
+          description: Flame graph data for one window
+          content:
+            application/json:
+              schema: { $ref: './telemetry.schema.json#/$defs/Flamegraph' }
+        '4XX': { $ref: '#/components/responses/Error' }
+        '5XX': { $ref: '#/components/responses/Error' }
+  /flamegraph:
+    get:
+      tags: [profiles]
+      operationId: getMergedFlamegraph
+      summary: Folded stacks merged over profile windows in a time range. Window max 6 hours, at most 120 profiles merged, at most 5000 stacks returned (truncated=true otherwise).
+      parameters:
+        - $ref: '#/components/parameters/service'
+        - $ref: '#/components/parameters/instanceId'
+        - $ref: '#/components/parameters/from'
+        - $ref: '#/components/parameters/to'
+      responses:
+        '200':
+          description: Merged CPU sample stacks (statistical samples, not a per-trace breakdown)
+          content:
+            application/json:
+              schema: { $ref: './telemetry.schema.json#/$defs/Flamegraph' }
+        '4XX': { $ref: '#/components/responses/Error' }
+        '5XX': { $ref: '#/components/responses/Error' }
+  /health:
+    get:
+      tags: [health]
+      operationId: getHealth
+      summary: Serving instance storage state plus every instance heartbeat within instancesHours. Works (servedBy only, items empty) when Mongo is down.
+      description: |
+        Each heartbeat's `profiler` block reports the configured `sampleRateHz` and the `achievedSampleRateHz`
+        of the last window, so a throttled or blocked sampler is visible rather than hidden.
+      responses:
+        '200':
+          description: Health
+          content:
+            application/json:
+              schema: { $ref: './telemetry.schema.json#/$defs/Health' }
+        '4XX': { $ref: '#/components/responses/Error' }
+        '5XX': { $ref: '#/components/responses/Error' }
+components:
+  parameters:
+    service:
+      name: service
+      in: query
+      schema: { $ref: './telemetry.schema.json#/$defs/Name' }
+    instanceId:
+      name: instanceId
+      in: query
+      schema: { $ref: './telemetry.schema.json#/$defs/Id' }
+    from:
+      name: from
+      in: query
+      schema: { $ref: './telemetry.schema.json#/$defs/IsoDateTime' }
+    to:
+      name: to
+      in: query
+      schema: { $ref: './telemetry.schema.json#/$defs/IsoDateTime' }
+    search:
+      name: search
+      in: query
+      schema: { type: string, minLength: 1, maxLength: 128 }
+    limit:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
+    cursor:
+      name: cursor
+      in: query
+      schema: { type: string, maxLength: 512 }
+  responses:
+    Error:
+      description: |
+        400 INVALID_QUERY | INVALID_CURSOR; 403 FORBIDDEN; 404 NOT_FOUND; 405 METHOD_NOT_ALLOWED;
+        429 RATE_LIMITED; 503 STORAGE_UNAVAILABLE | QUERY_TIMEOUT; 500 INTERNAL. Messages never include
+        connection strings, stack traces or raw Mongo errors.
+      content:
+        application/json:
+          schema: { $ref: './telemetry.schema.json#/$defs/ErrorEnvelope' }

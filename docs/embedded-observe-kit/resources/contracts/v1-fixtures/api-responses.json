@@ -1,0 +1,108 @@
+{
+  "TracePage": {
+    "items": [
+      {
+        "schemaVersion": 1,
+        "traceId": "0199f0e0-0000-7000-8000-000000000102",
+        "serviceName": "orders-worker",
+        "instanceId": "orders-worker-6f7c9-1a2b3c4d5e6f",
+        "operation": "rabbitmq.consume",
+        "kind": "rabbitmq",
+        "startedAt": "2026-10-29T10:15:01.004Z",
+        "durationMs": 12.0,
+        "status": "error",
+        "spanCount": 4,
+        "errorCount": 1,
+        "isComplete": true,
+        "sampleRate": 1,
+        "detail": "full",
+        "errorFingerprint": "3f9a0c1d2e4b5a69"
+      }
+    ],
+    "nextCursor": "eyJ2IjoxLCJzIjoxNzYxNzMyOTAxMDA0LCJ0IjoiMDE5OWYwZTAtMDAwMC03MDAwLTgwMDAtMDAwMDAwMDAwMTAyIiwiZiI6IjFhMmIzYzRkIn0"
+  },
+  "TraceDetail": {
+    "trace": {
+      "schemaVersion": 1,
+      "traceId": "0199f0e0-0000-7000-8000-000000000104",
+      "serviceName": "orders-worker",
+      "instanceId": "orders-worker-8d1e2-9f8e7d6c5b4a",
+      "operation": "rabbitmq.consume",
+      "kind": "rabbitmq",
+      "startedAt": "2026-10-29T10:15:02.500Z",
+      "durationMs": 3.4,
+      "status": "error",
+      "spanCount": 1,
+      "errorCount": 1,
+      "isComplete": true,
+      "detail": "rootOnly",
+      "sampleRate": 0.1
+    },
+    "spans": [
+      { "traceId": "0199f0e0-0000-7000-8000-000000000104", "spanId": "0199f0e0-0000-7000-8000-00000000d101", "parentSpanId": null, "operation": "rabbitmq.consume", "origin": "root", "startOffsetMs": 0, "durationMs": 3.4, "selfDurationMs": 3.4, "status": "error", "sanitizedError": { "name": "ValidationError", "message": "field \"total\" must be a number" } }
+    ]
+  },
+  "ServiceList": {
+    "items": [ { "serviceName": "orders-worker", "instanceCount": 2, "liveInstanceCount": 2, "lastSeenAt": "2026-10-29T10:15:30.000Z" } ]
+  },
+  "InstanceList": {
+    "items": [
+      { "instanceId": "orders-worker-6f7c9-1a2b3c4d5e6f", "serviceName": "orders-worker", "serviceVersion": "1.4.2", "hostName": "orders-worker-6f7c9", "startedAt": "2026-10-29T09:00:00.000Z", "lastSeenAt": "2026-10-29T10:15:30.000Z", "isLive": true, "profilerState": "running" },
+      { "instanceId": "orders-worker-8d1e2-9f8e7d6c5b4a", "serviceName": "orders-worker", "hostName": "orders-worker-8d1e2", "startedAt": "2026-10-29T09:00:05.000Z", "lastSeenAt": "2026-10-29T10:15:28.000Z", "isLive": true, "profilerState": "unavailable" }
+    ]
+  },
+  "Overview": {
+    "window": { "from": "2026-10-29T09:15:00.000Z", "to": "2026-10-29T10:15:00.000Z", "bucketMs": 60000 },
+    "totals": { "executions": 70210, "errors": 412, "errorRate": 0.00587, "p50Ms": 22.4, "p95Ms": 96.0, "percentileMethod": "histogram-approx" },
+    "series": [ { "t": "2026-10-29T10:14:00.000Z", "executions": 1180, "errors": 6, "p95Ms": 92.0 } ],
+    "slowestOperations": [ { "operation": "orders.reindex", "kind": "custom", "executions": 2, "errors": 0, "avgMs": 150000, "p95Ms": 300000, "maxMs": 300000 } ],
+    "dataNotes": { "executionsAreSampled": false, "methodStatsAreSampled": true, "flushLagHintMs": 2000 }
+  },
+  "MethodStatsList": {
+    "window": { "from": "2026-10-29T09:15:00.000Z", "to": "2026-10-29T10:15:00.000Z" },
+    "items": [ { "serviceName": "orders-worker", "className": "Repo", "method": "find", "operation": "Repo.find", "calls": 240, "errors": 1, "avgMs": 21.5, "p95Ms": 46.2, "maxMs": 88.2, "selfAvgMs": 21.5, "selfSampleCount": 240 } ],
+    "sampled": true
+  },
+  "ProfileSummaryPage": {
+    "items": [
+      { "schemaVersion": 1, "profileId": "0199f0e0-0000-7000-8000-0000000f0001", "serviceName": "orders-worker", "instanceId": "orders-worker-6f7c9-1a2b3c4d5e6f", "periodStart": "2026-10-29T10:15:00.000Z", "periodEnd": "2026-10-29T10:15:30.004Z", "format": "folded-stacks", "sampleRateHz": 99, "sampleCount": 512, "idleSampleCount": 2448, "durationMs": 30004.2, "gapBeforeMs": 104.6 }
+    ],
+    "nextCursor": null
+  },
+  "Flamegraph": {
+    "semantics": "cpu-samples",
+    "window": { "from": "2026-10-29T10:15:00.000Z", "to": "2026-10-29T10:16:00.000Z" },
+    "instanceIds": [ "orders-worker-6f7c9-1a2b3c4d5e6f" ],
+    "profileCount": 2,
+    "sampleRateHz": 99,
+    "sampleCount": 609,
+    "idleSampleCount": 4930,
+    "droppedSampleCount": 9,
+    "truncated": false,
+    "stacks": [ { "stack": "processTicksAndRejections node:internal/process/task_queues:105;OrdersService.handle dist/orders/orders.service.js:22;burnCpu dist/orders/cpu.js:7", "samples": 600 } ]
+  },
+  "ErrorGroupPage": {
+    "items": [ { "fingerprint": "3f9a0c1d2e4b5a69", "name": "MongoServerError", "message": "connection to mongodb://[REDACTED]@db:27017 failed", "operation": "rabbitmq.consume", "serviceName": "orders-worker", "count": 7, "firstSeenAt": "2026-10-29T10:01:00.000Z", "lastSeenAt": "2026-10-29T10:15:01.004Z", "sampleTraceId": "0199f0e0-0000-7000-8000-000000000102" } ],
+    "nextCursor": null,
+    "scannedTraces": 412,
+    "truncated": false
+  },
+  "Health": {
+    "servedBy": { "instanceId": "orders-worker-6f7c9-1a2b3c4d5e6f", "serviceName": "orders-worker", "mongoConnected": true, "schemaVersion": 1 },
+    "items": [
+      {
+        "instance": "orders-worker-6f7c9-1a2b3c4d5e6f",
+        "isLive": true,
+        "heartbeat": {
+          "schemaVersion": 1, "instanceId": "orders-worker-6f7c9-1a2b3c4d5e6f", "serviceName": "orders-worker", "hostName": "orders-worker-6f7c9", "pid": 1, "bootId": "0199f0d0-0000-7000-8000-1a2b3c4d5e6f", "startedAt": "2026-10-29T09:00:00.000Z", "lastSeenAt": "2026-10-29T10:15:30.000Z",
+          "versions": { "node": "22.22.0", "tracelet": "0.1.0" },
+          "tracing": { "enabled": true, "sampleRate": 0.1 },
+          "profiler": { "state": "backoff", "reason": "stop+fold stall 140ms exceeded maxStallMs 100ms for 3 windows" },
+          "buffer": { "queueDepth": 0, "droppedTraces": 12, "droppedProfiles": 0, "lastFlushErrorCode": "STORAGE_UNAVAILABLE" },
+          "storage": { "connected": false }
+        }
+      }
+    ]
+  },
+  "ErrorEnvelope": { "error": { "code": "INVALID_QUERY", "message": "time window exceeds 7 days" } }
+}

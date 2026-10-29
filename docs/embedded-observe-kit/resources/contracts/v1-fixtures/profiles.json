@@ -1,0 +1,25 @@
+[
+  {
+    "schemaVersion": 1,
+    "profileId": "0199f0e0-0000-7000-8000-0000000f0001",
+    "serviceName": "orders-worker",
+    "serviceVersion": "1.4.2",
+    "instanceId": "orders-worker-6f7c9-1a2b3c4d5e6f",
+    "periodStart": "2026-10-29T10:15:00.000Z",
+    "periodEnd": "2026-10-29T10:15:30.004Z",
+    "format": "folded-stacks",
+    "sampleRateHz": 99,
+    "sampleCount": 512,
+    "durationMs": 30004.2,
+    "idleSampleCount": 2448,
+    "droppedStackCount": 3,
+    "droppedSampleCount": 5,
+    "gapBeforeMs": 104.6,
+    "stacks": [
+      { "stack": "processTicksAndRejections node:internal/process/task_queues:105;OrdersService.handle dist/orders/orders.service.js:22;burnCpu dist/orders/cpu.js:7", "samples": 301 },
+      { "stack": "processTicksAndRejections node:internal/process/task_queues:105;OrdersService.handle dist/orders/orders.service.js:22;JSON.stringify", "samples": 97 },
+      { "stack": "(garbage collector)", "samples": 64 },
+      { "stack": "(program)", "samples": 45 }
+    ]
+  }
+]

@@ -1,0 +1,557 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://internal.invalid/tracelet/telemetry-v1.schema.json",
+  "title": "Tracelet telemetry and query DTOs, schemaVersion 1 (FROZEN v1 - pending independent review)",
+  "description": "Wire/API JSON shapes (dates are ISO 8601 UTC strings). Mongo documents add _id, expireAt and BSON Dates as described in artifacts/01_CONTRACT_FREEZE.md section 4. The document root validates a Trace for backward compatibility with the proposal; every other shape is under $defs. Changes only via the change-request protocol (artifacts/01_IMPLEMENTATION_PLAN.md section 19).",
+  "$ref": "#/$defs/Trace",
+  "$defs": {
+    "TraceId": { "type": "string", "pattern": "^[A-Za-z0-9._:-]{8,128}$" },
+    "Id": { "type": "string", "pattern": "^[A-Za-z0-9._:-]{1,128}$" },
+    "Name": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "Operation": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "IsoDateTime": { "type": "string", "format": "date-time" },
+    "Millis": { "type": "number", "minimum": 0 },
+    "Count": { "type": "integer", "minimum": 0 },
+    "ExecutionKind": { "enum": ["http", "rabbitmq", "scheduled", "event", "custom"] },
+    "ExecutionStatus": { "enum": ["ok", "error", "incomplete"] },
+    "SpanOrigin": { "enum": ["root", "auto", "manual"] },
+    "TraceDetailLevel": { "enum": ["full", "rootOnly"] },
+    "ProfilerState": { "enum": ["starting", "running", "backoff", "disabled", "unavailable", "stopped", "error"] },
+    "Attributes": {
+      "type": "object",
+      "maxProperties": 16,
+      "propertyNames": { "pattern": "^[A-Za-z0-9_.-]{1,64}$" },
+      "additionalProperties": {
+        "anyOf": [
+          { "type": "string", "maxLength": 256 },
+          { "type": "number" },
+          { "type": "boolean" }
+        ]
+      }
+    },
+    "SanitizedError": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": { "$ref": "#/$defs/Name" },
+        "message": { "type": "string", "maxLength": 1024 },
+        "stack": {
+          "type": "array",
+          "maxItems": 20,
+          "items": { "type": "string", "maxLength": 256 }
+        }
+      }
+    },
+    "Histogram": {
+      "description": "Counts per fixed duration bucket. Upper bounds in ms (inclusive): 1,2,5,10,25,50,100,250,500,1000,2500,5000,10000,30000,60000,+Infinity. Exactly 16 entries.",
+      "type": "array",
+      "minItems": 16,
+      "maxItems": 16,
+      "items": { "$ref": "#/$defs/Count" }
+    },
+    "Trace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "traceId", "serviceName", "instanceId", "operation", "kind", "startedAt", "durationMs", "status", "spanCount", "errorCount", "isComplete"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "traceId": { "$ref": "#/$defs/TraceId" },
+        "serviceName": { "$ref": "#/$defs/Name" },
+        "serviceVersion": { "type": "string", "maxLength": 64 },
+        "instanceId": { "$ref": "#/$defs/Id" },
+        "operation": { "$ref": "#/$defs/Operation" },
+        "kind": { "$ref": "#/$defs/ExecutionKind" },
+        "startedAt": { "$ref": "#/$defs/IsoDateTime" },
+        "durationMs": { "$ref": "#/$defs/Millis" },
+        "status": { "$ref": "#/$defs/ExecutionStatus" },
+        "spanCount": { "$ref": "#/$defs/Count" },
+        "errorCount": { "$ref": "#/$defs/Count" },
+        "isComplete": { "type": "boolean" },
+        "rootSpanId": { "$ref": "#/$defs/Id" },
+        "sampleRate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "detail": { "$ref": "#/$defs/TraceDetailLevel" },
+        "droppedSpanCount": { "$ref": "#/$defs/Count" },
+        "unfinishedSpanCount": { "$ref": "#/$defs/Count" },
+        "attributes": { "$ref": "#/$defs/Attributes" },
+        "error": { "$ref": "#/$defs/SanitizedError" },
+        "errorFingerprint": { "type": "string", "pattern": "^[0-9a-f]{16}$" }
+      }
+    },
+    "Span": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["spanId", "traceId", "parentSpanId", "operation", "startOffsetMs", "durationMs", "status"],
+      "properties": {
+        "spanId": { "$ref": "#/$defs/Id" },
+        "traceId": { "$ref": "#/$defs/TraceId" },
+        "parentSpanId": { "anyOf": [{ "$ref": "#/$defs/Id" }, { "type": "null" }] },
+        "operation": { "$ref": "#/$defs/Operation" },
+        "origin": { "$ref": "#/$defs/SpanOrigin" },
+        "className": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "method": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "startOffsetMs": { "$ref": "#/$defs/Millis" },
+        "durationMs": { "$ref": "#/$defs/Millis" },
+        "selfDurationMs": { "$ref": "#/$defs/Millis" },
+        "status": { "$ref": "#/$defs/ExecutionStatus" },
+        "sanitizedError": { "$ref": "#/$defs/SanitizedError" },
+        "collapsedCount": { "type": "integer", "minimum": 2 }
+      }
+    },
+    "ProfileStack": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stack", "samples"],
+      "properties": {
+        "stack": { "type": "string", "minLength": 1, "maxLength": 32768 },
+        "samples": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "CpuProfileSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "profileId", "serviceName", "instanceId", "periodStart", "periodEnd", "format", "sampleRateHz", "sampleCount"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "profileId": { "$ref": "#/$defs/Id" },
+        "serviceName": { "$ref": "#/$defs/Name" },
+        "serviceVersion": { "type": "string", "maxLength": 64 },
+        "instanceId": { "$ref": "#/$defs/Id" },
+        "periodStart": { "$ref": "#/$defs/IsoDateTime" },
+        "periodEnd": { "$ref": "#/$defs/IsoDateTime" },
+        "format": { "const": "folded-stacks" },
+        "sampleRateHz": { "type": "number", "exclusiveMinimum": 0, "maximum": 1000 },
+        "sampleCount": { "$ref": "#/$defs/Count" },
+        "durationMs": { "$ref": "#/$defs/Millis" },
+        "idleSampleCount": { "$ref": "#/$defs/Count" },
+        "droppedStackCount": { "$ref": "#/$defs/Count" },
+        "droppedSampleCount": { "$ref": "#/$defs/Count" },
+        "gapBeforeMs": { "$ref": "#/$defs/Millis" }
+      }
+    },
+    "CpuProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "profileId", "serviceName", "instanceId", "periodStart", "periodEnd", "format", "sampleRateHz", "sampleCount", "stacks"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "profileId": { "$ref": "#/$defs/Id" },
+        "serviceName": { "$ref": "#/$defs/Name" },
+        "serviceVersion": { "type": "string", "maxLength": 64 },
+        "instanceId": { "$ref": "#/$defs/Id" },
+        "periodStart": { "$ref": "#/$defs/IsoDateTime" },
+        "periodEnd": { "$ref": "#/$defs/IsoDateTime" },
+        "format": { "const": "folded-stacks" },
+        "sampleRateHz": { "type": "number", "exclusiveMinimum": 0, "maximum": 1000 },
+        "sampleCount": { "$ref": "#/$defs/Count" },
+        "durationMs": { "$ref": "#/$defs/Millis" },
+        "idleSampleCount": { "$ref": "#/$defs/Count" },
+        "droppedStackCount": { "$ref": "#/$defs/Count" },
+        "droppedSampleCount": { "$ref": "#/$defs/Count" },
+        "gapBeforeMs": { "$ref": "#/$defs/Millis" },
+        "stacks": { "type": "array", "maxItems": 5000, "items": { "$ref": "#/$defs/ProfileStack" } }
+      }
+    },
+    "OperationRollup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "serviceName", "instanceId", "bucketStart", "bucketMs", "operation", "kind", "count", "errorCount", "sampledCount", "durationSumMs", "durationMaxMs", "histogram"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "serviceName": { "$ref": "#/$defs/Name" },
+        "instanceId": { "$ref": "#/$defs/Id" },
+        "bucketStart": { "$ref": "#/$defs/IsoDateTime" },
+        "bucketMs": { "const": 60000 },
+        "operation": { "$ref": "#/$defs/Operation" },
+        "kind": { "$ref": "#/$defs/ExecutionKind" },
+        "count": { "$ref": "#/$defs/Count" },
+        "errorCount": { "$ref": "#/$defs/Count" },
+        "sampledCount": { "$ref": "#/$defs/Count" },
+        "durationSumMs": { "$ref": "#/$defs/Millis" },
+        "durationMaxMs": { "$ref": "#/$defs/Millis" },
+        "histogram": { "$ref": "#/$defs/Histogram" }
+      }
+    },
+    "MethodRollup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "serviceName", "instanceId", "bucketStart", "bucketMs", "operation", "count", "errorCount", "durationSumMs", "durationMaxMs", "selfSumMs", "selfCount", "histogram"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "serviceName": { "$ref": "#/$defs/Name" },
+        "instanceId": { "$ref": "#/$defs/Id" },
+        "bucketStart": { "$ref": "#/$defs/IsoDateTime" },
+        "bucketMs": { "const": 60000 },
+        "className": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "method": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "operation": { "$ref": "#/$defs/Operation" },
+        "count": { "$ref": "#/$defs/Count" },
+        "errorCount": { "$ref": "#/$defs/Count" },
+        "durationSumMs": { "$ref": "#/$defs/Millis" },
+        "durationMaxMs": { "$ref": "#/$defs/Millis" },
+        "selfSumMs": { "$ref": "#/$defs/Millis" },
+        "selfCount": { "$ref": "#/$defs/Count" },
+        "histogram": { "$ref": "#/$defs/Histogram" }
+      }
+    },
+    "TelemetryCounters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rootsStarted", "rootsSampledOut", "tracesDroppedAdmission", "tracesDroppedQueueFull", "tracesDroppedStorage", "spansDropped", "profilesDropped", "rollupsDropped"],
+      "properties": {
+        "rootsStarted": { "$ref": "#/$defs/Count" },
+        "rootsSampledOut": { "$ref": "#/$defs/Count" },
+        "tracesDroppedAdmission": { "$ref": "#/$defs/Count" },
+        "tracesDroppedQueueFull": { "$ref": "#/$defs/Count" },
+        "tracesDroppedStorage": { "$ref": "#/$defs/Count" },
+        "spansDropped": { "$ref": "#/$defs/Count" },
+        "profilesDropped": { "$ref": "#/$defs/Count" },
+        "rollupsDropped": { "$ref": "#/$defs/Count" }
+      }
+    },
+    "MetricRollup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "serviceName", "instanceId", "intervalStart", "intervalEnd", "cpuFraction", "heapUsedBytes", "heapTotalBytes", "rssBytes", "eventLoopDelayP50Ms", "eventLoopDelayP99Ms", "eventLoopUtilization", "gcCount", "gcDurationMs", "telemetry"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "serviceName": { "$ref": "#/$defs/Name" },
+        "instanceId": { "$ref": "#/$defs/Id" },
+        "intervalStart": { "$ref": "#/$defs/IsoDateTime" },
+        "intervalEnd": { "$ref": "#/$defs/IsoDateTime" },
+        "cpuFraction": { "type": "number", "minimum": 0, "description": "process (user+system) CPU time / wall time; 1.0 = one core; may exceed 1" },
+        "heapUsedBytes": { "$ref": "#/$defs/Count" },
+        "heapTotalBytes": { "$ref": "#/$defs/Count" },
+        "rssBytes": { "$ref": "#/$defs/Count" },
+        "externalBytes": { "$ref": "#/$defs/Count" },
+        "eventLoopDelayP50Ms": { "$ref": "#/$defs/Millis" },
+        "eventLoopDelayP99Ms": { "$ref": "#/$defs/Millis" },
+        "eventLoopDelayMaxMs": { "$ref": "#/$defs/Millis" },
+        "eventLoopUtilization": { "type": "number", "minimum": 0, "maximum": 1 },
+        "gcCount": { "$ref": "#/$defs/Count" },
+        "gcDurationMs": { "$ref": "#/$defs/Millis" },
+        "telemetry": { "$ref": "#/$defs/TelemetryCounters" }
+      }
+    },
+    "InstanceHeartbeat": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "instanceId", "serviceName", "hostName", "pid", "bootId", "startedAt", "lastSeenAt", "versions", "tracing", "profiler", "buffer", "storage"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "instanceId": { "$ref": "#/$defs/Id" },
+        "serviceName": { "$ref": "#/$defs/Name" },
+        "serviceVersion": { "type": "string", "maxLength": 64 },
+        "hostName": { "type": "string", "minLength": 1, "maxLength": 253 },
+        "pid": { "type": "integer", "minimum": 0 },
+        "bootId": { "$ref": "#/$defs/Id" },
+        "startedAt": { "$ref": "#/$defs/IsoDateTime" },
+        "lastSeenAt": { "$ref": "#/$defs/IsoDateTime" },
+        "versions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["node", "tracelet"],
+          "properties": {
+            "node": { "type": "string", "maxLength": 32 },
+            "nestCore": { "type": "string", "maxLength": 32 },
+            "tracelet": { "type": "string", "maxLength": 32 }
+          }
+        },
+        "tracing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "sampleRate"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "sampleRate": { "type": "number", "minimum": 0, "maximum": 1 },
+            "instrumentInstalled": { "type": "boolean" }
+          }
+        },
+        "profiler": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state"],
+          "properties": {
+            "state": { "$ref": "#/$defs/ProfilerState" },
+            "reason": { "type": "string", "maxLength": 256 },
+            "sampleRateHz": { "type": "number", "minimum": 0, "maximum": 1000 },
+            "achievedSampleRateHz": { "type": "number", "minimum": 0, "maximum": 1000, "description": "last window: (sampleCount + idleSampleCount - 1) / (seconds between its first and last sample timestamps); never from durationMs" },
+            "windowMs": { "$ref": "#/$defs/Millis" },
+            "lastWindowAt": { "$ref": "#/$defs/IsoDateTime" }
+          }
+        },
+        "buffer": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["queueDepth", "droppedTraces", "droppedProfiles"],
+          "properties": {
+            "queueDepth": { "$ref": "#/$defs/Count" },
+            "droppedTraces": { "$ref": "#/$defs/Count" },
+            "droppedProfiles": { "$ref": "#/$defs/Count" },
+            "lastFlushAt": { "$ref": "#/$defs/IsoDateTime" },
+            "lastFlushErrorCode": { "type": "string", "maxLength": 64 }
+          }
+        },
+        "storage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["connected"],
+          "properties": { "connected": { "type": "boolean" } }
+        }
+      }
+    },
+    "ErrorEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["error"],
+      "properties": {
+        "error": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["code", "message"],
+          "properties": {
+            "code": { "enum": ["INVALID_QUERY", "INVALID_CURSOR", "NOT_FOUND", "FORBIDDEN", "METHOD_NOT_ALLOWED", "RATE_LIMITED", "STORAGE_UNAVAILABLE", "QUERY_TIMEOUT", "INTERNAL"] },
+            "message": { "type": "string", "maxLength": 512 }
+          }
+        }
+      }
+    },
+    "TimeWindow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to"],
+      "properties": {
+        "from": { "$ref": "#/$defs/IsoDateTime" },
+        "to": { "$ref": "#/$defs/IsoDateTime" },
+        "bucketMs": { "type": "integer", "minimum": 60000 }
+      }
+    },
+    "TracePage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["items", "nextCursor"],
+      "properties": {
+        "items": { "type": "array", "maxItems": 100, "items": { "$ref": "#/$defs/Trace" } },
+        "nextCursor": { "anyOf": [{ "type": "string", "maxLength": 512 }, { "type": "null" }] }
+      }
+    },
+    "TraceDetail": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["trace", "spans"],
+      "properties": {
+        "trace": { "$ref": "#/$defs/Trace" },
+        "spans": { "type": "array", "maxItems": 5000, "items": { "$ref": "#/$defs/Span" } }
+      }
+    },
+    "ServiceSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["serviceName", "instanceCount", "liveInstanceCount", "lastSeenAt"],
+      "properties": {
+        "serviceName": { "$ref": "#/$defs/Name" },
+        "instanceCount": { "$ref": "#/$defs/Count" },
+        "liveInstanceCount": { "$ref": "#/$defs/Count" },
+        "lastSeenAt": { "$ref": "#/$defs/IsoDateTime" }
+      }
+    },
+    "ServiceList": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["items"],
+      "properties": { "items": { "type": "array", "maxItems": 200, "items": { "$ref": "#/$defs/ServiceSummary" } } }
+    },
+    "InstanceSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["instanceId", "serviceName", "hostName", "startedAt", "lastSeenAt", "isLive", "profilerState"],
+      "properties": {
+        "instanceId": { "$ref": "#/$defs/Id" },
+        "serviceName": { "$ref": "#/$defs/Name" },
+        "serviceVersion": { "type": "string", "maxLength": 64 },
+        "hostName": { "type": "string", "minLength": 1, "maxLength": 253 },
+        "startedAt": { "$ref": "#/$defs/IsoDateTime" },
+        "lastSeenAt": { "$ref": "#/$defs/IsoDateTime" },
+        "isLive": { "type": "boolean" },
+        "profilerState": { "$ref": "#/$defs/ProfilerState" }
+      }
+    },
+    "InstanceList": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["items"],
+      "properties": { "items": { "type": "array", "maxItems": 500, "items": { "$ref": "#/$defs/InstanceSummary" } } }
+    },
+    "OperationStats": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation", "kind", "executions", "errors", "avgMs"],
+      "properties": {
+        "operation": { "$ref": "#/$defs/Operation" },
+        "kind": { "$ref": "#/$defs/ExecutionKind" },
+        "executions": { "$ref": "#/$defs/Count" },
+        "errors": { "$ref": "#/$defs/Count" },
+        "avgMs": { "$ref": "#/$defs/Millis" },
+        "p95Ms": { "$ref": "#/$defs/Millis" },
+        "maxMs": { "$ref": "#/$defs/Millis" }
+      }
+    },
+    "Overview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["window", "totals", "series", "slowestOperations", "dataNotes"],
+      "properties": {
+        "window": { "$ref": "#/$defs/TimeWindow" },
+        "totals": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["executions", "errors", "errorRate", "percentileMethod"],
+          "properties": {
+            "executions": { "$ref": "#/$defs/Count" },
+            "errors": { "$ref": "#/$defs/Count" },
+            "errorRate": { "type": "number", "minimum": 0, "maximum": 1 },
+            "p50Ms": { "$ref": "#/$defs/Millis" },
+            "p95Ms": { "$ref": "#/$defs/Millis" },
+            "percentileMethod": { "const": "histogram-approx" }
+          }
+        },
+        "series": {
+          "type": "array",
+          "maxItems": 1440,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["t", "executions", "errors"],
+            "properties": {
+              "t": { "$ref": "#/$defs/IsoDateTime" },
+              "executions": { "$ref": "#/$defs/Count" },
+              "errors": { "$ref": "#/$defs/Count" },
+              "p95Ms": { "$ref": "#/$defs/Millis" }
+            }
+          }
+        },
+        "slowestOperations": { "type": "array", "maxItems": 20, "items": { "$ref": "#/$defs/OperationStats" } },
+        "dataNotes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["executionsAreSampled", "methodStatsAreSampled"],
+          "properties": {
+            "executionsAreSampled": { "const": false },
+            "methodStatsAreSampled": { "const": true },
+            "flushLagHintMs": { "$ref": "#/$defs/Millis" }
+          }
+        }
+      }
+    },
+    "MethodStats": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation", "calls", "errors", "avgMs", "selfSampleCount"],
+      "properties": {
+        "serviceName": { "$ref": "#/$defs/Name" },
+        "className": { "type": "string", "maxLength": 128 },
+        "method": { "type": "string", "maxLength": 128 },
+        "operation": { "$ref": "#/$defs/Operation" },
+        "calls": { "$ref": "#/$defs/Count" },
+        "errors": { "$ref": "#/$defs/Count" },
+        "avgMs": { "$ref": "#/$defs/Millis" },
+        "p95Ms": { "$ref": "#/$defs/Millis" },
+        "maxMs": { "$ref": "#/$defs/Millis" },
+        "selfAvgMs": { "$ref": "#/$defs/Millis" },
+        "selfSampleCount": { "$ref": "#/$defs/Count" }
+      }
+    },
+    "MethodStatsList": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["window", "items", "sampled"],
+      "properties": {
+        "window": { "$ref": "#/$defs/TimeWindow" },
+        "items": { "type": "array", "maxItems": 500, "items": { "$ref": "#/$defs/MethodStats" } },
+        "sampled": { "const": true }
+      }
+    },
+    "ProfileSummaryPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["items", "nextCursor"],
+      "properties": {
+        "items": { "type": "array", "maxItems": 100, "items": { "$ref": "#/$defs/CpuProfileSummary" } },
+        "nextCursor": { "anyOf": [{ "type": "string", "maxLength": 512 }, { "type": "null" }] }
+      }
+    },
+    "Flamegraph": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["semantics", "window", "profileCount", "sampleCount", "droppedSampleCount", "truncated", "stacks"],
+      "properties": {
+        "semantics": { "const": "cpu-samples" },
+        "window": { "$ref": "#/$defs/TimeWindow" },
+        "instanceIds": { "type": "array", "maxItems": 500, "items": { "$ref": "#/$defs/Id" } },
+        "profileCount": { "$ref": "#/$defs/Count" },
+        "sampleRateHz": { "type": "number", "minimum": 0, "maximum": 1000 },
+        "sampleCount": { "$ref": "#/$defs/Count" },
+        "idleSampleCount": { "$ref": "#/$defs/Count" },
+        "droppedSampleCount": { "$ref": "#/$defs/Count" },
+        "truncated": { "type": "boolean" },
+        "stacks": { "type": "array", "maxItems": 5000, "items": { "$ref": "#/$defs/ProfileStack" } }
+      }
+    },
+    "ErrorGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fingerprint", "name", "operation", "serviceName", "count", "firstSeenAt", "lastSeenAt", "sampleTraceId"],
+      "properties": {
+        "fingerprint": { "type": "string", "pattern": "^[0-9a-f]{16}$" },
+        "name": { "$ref": "#/$defs/Name" },
+        "message": { "type": "string", "maxLength": 1024 },
+        "operation": { "$ref": "#/$defs/Operation" },
+        "serviceName": { "$ref": "#/$defs/Name" },
+        "count": { "type": "integer", "minimum": 1 },
+        "firstSeenAt": { "$ref": "#/$defs/IsoDateTime" },
+        "lastSeenAt": { "$ref": "#/$defs/IsoDateTime" },
+        "sampleTraceId": { "$ref": "#/$defs/TraceId" }
+      }
+    },
+    "ErrorGroupPage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["items", "nextCursor", "scannedTraces", "truncated"],
+      "properties": {
+        "items": { "type": "array", "maxItems": 100, "items": { "$ref": "#/$defs/ErrorGroup" } },
+        "nextCursor": { "anyOf": [{ "type": "string", "maxLength": 512 }, { "type": "null" }] },
+        "scannedTraces": { "$ref": "#/$defs/Count" },
+        "truncated": { "type": "boolean" }
+      }
+    },
+    "InstanceHealth": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["instance", "isLive", "heartbeat"],
+      "properties": {
+        "instance": { "$ref": "#/$defs/Id" },
+        "isLive": { "type": "boolean" },
+        "heartbeat": { "$ref": "#/$defs/InstanceHeartbeat" }
+      }
+    },
+    "Health": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["servedBy", "items"],
+      "properties": {
+        "servedBy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["instanceId", "serviceName", "mongoConnected"],
+          "properties": {
+            "instanceId": { "$ref": "#/$defs/Id" },
+            "serviceName": { "$ref": "#/$defs/Name" },
+            "mongoConnected": { "type": "boolean" },
+            "schemaVersion": { "const": 1 }
+          }
+        },
+        "items": { "type": "array", "maxItems": 500, "items": { "$ref": "#/$defs/InstanceHealth" } }
+      }
+    }
+  }
+}

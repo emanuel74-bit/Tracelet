@@ -1,0 +1,86 @@
+{
+  "OperationRollup": [
+    {
+      "schemaVersion": 1,
+      "serviceName": "orders-worker",
+      "instanceId": "orders-worker-6f7c9-1a2b3c4d5e6f",
+      "bucketStart": "2026-10-29T10:15:00.000Z",
+      "bucketMs": 60000,
+      "operation": "rabbitmq.consume",
+      "kind": "rabbitmq",
+      "count": 1200,
+      "errorCount": 7,
+      "sampledCount": 120,
+      "durationSumMs": 31250.5,
+      "durationMaxMs": 412.0,
+      "histogram": [0, 4, 30, 160, 610, 300, 70, 20, 6, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ],
+  "MethodRollup": [
+    {
+      "schemaVersion": 1,
+      "serviceName": "orders-worker",
+      "instanceId": "orders-worker-6f7c9-1a2b3c4d5e6f",
+      "bucketStart": "2026-10-29T10:15:00.000Z",
+      "bucketMs": 60000,
+      "className": "Repo",
+      "method": "find",
+      "operation": "Repo.find",
+      "count": 240,
+      "errorCount": 1,
+      "durationSumMs": 5160.0,
+      "durationMaxMs": 88.2,
+      "selfSumMs": 5160.0,
+      "selfCount": 240,
+      "histogram": [0, 0, 2, 10, 200, 25, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ],
+  "MetricRollup": [
+    {
+      "schemaVersion": 1,
+      "serviceName": "orders-worker",
+      "instanceId": "orders-worker-6f7c9-1a2b3c4d5e6f",
+      "intervalStart": "2026-10-29T10:15:00.000Z",
+      "intervalEnd": "2026-10-29T10:15:30.000Z",
+      "cpuFraction": 0.42,
+      "heapUsedBytes": 73400320,
+      "heapTotalBytes": 104857600,
+      "rssBytes": 188743680,
+      "externalBytes": 2097152,
+      "eventLoopDelayP50Ms": 10.2,
+      "eventLoopDelayP99Ms": 24.9,
+      "eventLoopDelayMaxMs": 61.0,
+      "eventLoopUtilization": 0.37,
+      "gcCount": 41,
+      "gcDurationMs": 88.3,
+      "telemetry": {
+        "rootsStarted": 600,
+        "rootsSampledOut": 540,
+        "tracesDroppedAdmission": 0,
+        "tracesDroppedQueueFull": 0,
+        "tracesDroppedStorage": 0,
+        "spansDropped": 0,
+        "profilesDropped": 0,
+        "rollupsDropped": 0
+      }
+    }
+  ],
+  "InstanceHeartbeat": [
+    {
+      "schemaVersion": 1,
+      "instanceId": "orders-worker-6f7c9-1a2b3c4d5e6f",
+      "serviceName": "orders-worker",
+      "serviceVersion": "1.4.2",
+      "hostName": "orders-worker-6f7c9",
+      "pid": 1,
+      "bootId": "0199f0d0-0000-7000-8000-1a2b3c4d5e6f",
+      "startedAt": "2026-10-29T09:00:00.000Z",
+      "lastSeenAt": "2026-10-29T10:15:30.000Z",
+      "versions": { "node": "22.22.0", "nestCore": "11.2.8", "tracelet": "0.1.0" },
+      "tracing": { "enabled": true, "sampleRate": 0.1, "instrumentInstalled": true },
+      "profiler": { "state": "running", "sampleRateHz": 99, "achievedSampleRateHz": 98.96, "windowMs": 30000, "lastWindowAt": "2026-10-29T10:15:30.004Z" },
+      "buffer": { "queueDepth": 3, "droppedTraces": 0, "droppedProfiles": 0, "lastFlushAt": "2026-10-29T10:15:29.800Z" },
+      "storage": { "connected": true }
+    }
+  ]
+}
