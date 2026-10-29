@@ -1,0 +1,14 @@
+{
+  "name": "tracelet-monorepo",
+  "private": true,
+  "version": "0.0.0",
+  "workspaces": [
+    "packages/tracelet"
+  ],
+  "scripts": {
+    "build": "npm run -w packages/tracelet build",
+    "test": "npm run -w packages/tracelet test",
+    "lint": "npm run -w packages/tracelet lint",
+    "typecheck": "npm run -w packages/tracelet typecheck"
+  }
+}

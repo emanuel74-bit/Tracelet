@@ -1,0 +1,169 @@
+{
+  "generatedBy": "tests/integration/poc/edge-providers.int-spec.ts",
+  "nodeVersion": "v22.22.0",
+  "results": {
+    "forwardRef.A>B": {
+      "result": "A>B",
+      "spans": [
+        {
+          "op": "forwardRef.A>B",
+          "origin": "root",
+          "parent": null,
+          "durationMs": 2.9
+        },
+        {
+          "op": "FwdA.callB",
+          "origin": "auto",
+          "parent": "forwardRef.A>B",
+          "durationMs": 0.4
+        }
+      ]
+    },
+    "forwardRef.B>A": {
+      "result": "B>A",
+      "spans": [
+        {
+          "op": "forwardRef.B>A",
+          "origin": "root",
+          "parent": null,
+          "durationMs": 0.3
+        },
+        {
+          "op": "FwdB.callA",
+          "origin": "auto",
+          "parent": "forwardRef.B>A",
+          "durationMs": 0.1
+        }
+      ]
+    },
+    "request-scoped": {
+      "result": "req",
+      "spans": [
+        {
+          "op": "request-scoped",
+          "origin": "root",
+          "parent": null,
+          "durationMs": 0.1
+        }
+      ]
+    },
+    "transient": {
+      "result": "transient",
+      "spans": [
+        {
+          "op": "transient",
+          "origin": "root",
+          "parent": null,
+          "durationMs": 0.1
+        }
+      ]
+    },
+    "isProxy (did Nest hand the instance to the instrument hook)": {
+      "singletonFwdA": true,
+      "dependencyInjectedViaForwardRef": false,
+      "requestScoped": false,
+      "transient": false,
+      "privateClass": true
+    },
+    "#private.run": {
+      "result": 42,
+      "spans": [
+        {
+          "op": "#private.run",
+          "origin": "root",
+          "parent": null,
+          "durationMs": 0.3
+        },
+        {
+          "op": "PrivateKeeper.run",
+          "origin": "auto",
+          "parent": "#private.run",
+          "durationMs": 0.1
+        }
+      ]
+    },
+    "symbol-keyed method": {
+      "result": "sym",
+      "spans": [
+        {
+          "op": "symbol-keyed method",
+          "origin": "root",
+          "parent": null,
+          "durationMs": 0.4
+        },
+        {
+          "op": "Exotic.Symbol(edge.symMethod)",
+          "origin": "auto",
+          "parent": "symbol-keyed method",
+          "durationMs": 0.1
+        }
+      ]
+    },
+    "getter property": {
+      "result": 5,
+      "spans": [
+        {
+          "op": "getter property",
+          "origin": "root",
+          "parent": null,
+          "durationMs": 0.2
+        }
+      ]
+    },
+    "plain method": {
+      "result": "plain",
+      "spans": [
+        {
+          "op": "plain method",
+          "origin": "root",
+          "parent": null,
+          "durationMs": 0.3
+        },
+        {
+          "op": "Exotic.plain",
+          "origin": "auto",
+          "parent": "plain method",
+          "durationMs": 0.1
+        }
+      ]
+    },
+    "observable": {
+      "result": 2,
+      "spans": [
+        {
+          "op": "observable",
+          "origin": "root",
+          "parent": null,
+          "durationMs": 30.5
+        },
+        {
+          "op": "Streams.observable",
+          "origin": "auto",
+          "parent": "observable",
+          "durationMs": 0.6
+        }
+      ]
+    },
+    "async-iterable": {
+      "result": [
+        0,
+        1,
+        2
+      ],
+      "spans": [
+        {
+          "op": "async-iterable",
+          "origin": "root",
+          "parent": null,
+          "durationMs": 47.5
+        },
+        {
+          "op": "Streams.iterate",
+          "origin": "auto",
+          "parent": "async-iterable",
+          "durationMs": 0.1
+        }
+      ]
+    }
+  }
+}

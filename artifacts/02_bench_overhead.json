@@ -1,0 +1,99 @@
+{
+  "generatedBy": "bench/instrumentation/overhead.int-spec.ts",
+  "note": "Indicative only; no threshold. Caller-side latency; deferred mapping runs in timers and is not in these numbers. Stage 00 indicative: 0.17 / 0.80 / 19.8 us.",
+  "warmup": 2000,
+  "iterations": 20000,
+  "node": "v22.22.0",
+  "platform": "win32 x64",
+  "cpu": "Intel(R) Core(TM) i5-7400 CPU @ 3.00GHz",
+  "cpuCount": 4,
+  "timestamp": "2026-10-29T08:55:31.048Z",
+  "modes": {
+    "off": "instrument enabled:false, tracing disabled (pass-through)",
+    "on-untraced": "instrumented providers (proxies installed), tracing runtime disabled: trace() is a pass-through and every provider call takes the no-store untraced path",
+    "on-traced": "instrumented providers inside a sampled root (sampleRate 1)"
+  },
+  "results": {
+    "off": {
+      "perCall": {
+        "p50Us": 0.1,
+        "p95Us": 0.1,
+        "p99Us": 0.5,
+        "meanUs": 0.107,
+        "samples": 20000
+      },
+      "perMessage": {
+        "p50Us": 0.2,
+        "p95Us": 0.4,
+        "p99Us": 3.6,
+        "meanUs": 0.301,
+        "samples": 20000
+      },
+      "counters": {
+        "rootsStarted": 0,
+        "rootsSampledOut": 0,
+        "tracesDroppedAdmission": 0,
+        "tracesDroppedQueueFull": 0,
+        "tracesDroppedStorage": 0,
+        "spansDropped": 0,
+        "profilesDropped": 0,
+        "rollupsDropped": 0
+      },
+      "sink": 242209000
+    },
+    "on-untraced": {
+      "perCall": {
+        "p50Us": 0.6,
+        "p95Us": 0.7,
+        "p99Us": 10.5,
+        "meanUs": 0.984,
+        "samples": 20000
+      },
+      "perMessage": {
+        "p50Us": 1.6,
+        "p95Us": 2.3,
+        "p99Us": 6.1,
+        "meanUs": 1.966,
+        "samples": 20000
+      },
+      "counters": {
+        "rootsStarted": 0,
+        "rootsSampledOut": 0,
+        "tracesDroppedAdmission": 0,
+        "tracesDroppedQueueFull": 0,
+        "tracesDroppedStorage": 0,
+        "spansDropped": 0,
+        "profilesDropped": 0,
+        "rollupsDropped": 0
+      },
+      "sink": 242209000
+    },
+    "on-traced": {
+      "perCall": {
+        "p50Us": 13.2,
+        "p95Us": 21.2,
+        "p99Us": 47.5,
+        "meanUs": 15.224,
+        "samples": 20000
+      },
+      "perMessage": {
+        "p50Us": 61.1,
+        "p95Us": 99.7,
+        "p99Us": 213.9,
+        "meanUs": 72.016,
+        "samples": 20000
+      },
+      "counters": {
+        "rootsStarted": 44000,
+        "rootsSampledOut": 0,
+        "tracesDroppedAdmission": 0,
+        "tracesDroppedQueueFull": 0,
+        "tracesDroppedStorage": 0,
+        "spansDropped": 0,
+        "profilesDropped": 0,
+        "rollupsDropped": 0
+      },
+      "sink": 242209000
+    }
+  }
+}

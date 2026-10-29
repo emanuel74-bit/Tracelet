@@ -1,0 +1,5 @@
+node_modules
+dist
+coverage
+*.tsbuildinfo
+# packages/tracelet/assets/dashboard build output is committed (plan 3.9), so it is not ignored.
