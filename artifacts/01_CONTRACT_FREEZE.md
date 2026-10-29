@@ -210,7 +210,7 @@ TTL is single-field `{expireAt:1}` with `expireAfterSeconds: 0` (no TTL on compo
 
 ## 13. Anchoring commit and decisions
 
-- Branch: `tracelet/stage-01-contracts`. Commit SHA: see the commit following the freeze-record commit (filled in below).
+- Branch: `tracelet/stage-01-contracts`. Commit SHA: see the last line of this section.
 - Frozen file hashes: section 1 (unchanged by the commit; verify with `sha256sum`).
 - D1 deferred (no host yet; G0 unverified, blocks Stage 02 integration gate). D2 no auto HTTP roots. D3 driver 6.21. D4 profiling off until measured. D5 deferred to a CR. D6 commit built assets. D7 30 000 ms. D8 MIT (LICENSE file with holder name added at first scaffold). D9 done.
-- SHA: PENDING
+- SHA (commit that contains the frozen contracts): 825566081e927810fd498d9532fc8940e89f1392
