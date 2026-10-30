@@ -89,7 +89,9 @@ export class MongoTelemetryStore implements StorageHealthSource {
   }
   async writeHeartbeat(heartbeat: InstanceHeartbeat): Promise<void> {
     this.bounded(heartbeat); validateTelemetry('InstanceHeartbeat', heartbeat);
-    const doc = this.document({ ...heartbeat }, heartbeat.instanceId, heartbeat.lastSeenAt, this.retention.instance, ['startedAt', 'lastSeenAt']);
+    // A persisted heartbeat proves this write reached Mongo, even when the factory
+    // observed the previous failed write. Failed writes expose no optimistic row.
+    const doc = this.document({ ...heartbeat, storage: { connected: true } }, heartbeat.instanceId, heartbeat.lastSeenAt, this.retention.instance, ['startedAt', 'lastSeenAt']);
     const profiler = doc.profiler as Record<string, unknown>;
     const buffer = doc.buffer as Record<string, unknown>;
     if (profiler.lastWindowAt) profiler.lastWindowAt = new Date(profiler.lastWindowAt as string);
