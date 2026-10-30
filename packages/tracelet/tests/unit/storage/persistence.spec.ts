@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { TraceItem } from '../../../src/contracts/tracelet-internal-contracts';
+import type { InstanceHeartbeat } from '../../../src/contracts/observe-contracts';
 import { MongoTelemetryStore } from '../../../src/storage/documents';
 import { ensureTelemetryIndexes } from '../../../src/storage/indexes';
 import type { MongoCollection, TelemetryCollections } from '../../../src/storage/collections';
@@ -12,6 +13,22 @@ function trace(): TraceItem {
   return { type: 'trace', estimatedBytes: 1000, trace: { schemaVersion: 1, traceId: 'trace-0001', serviceName: 'worker', instanceId: 'pod-a', operation: 'job', kind: 'custom', startedAt: '2026-10-29T12:00:00.000Z', durationMs: 20, status: 'ok', spanCount: 1, errorCount: 0, isComplete: true, rootSpanId: 'root-0001' }, spans: [{ traceId: 'trace-0001', spanId: 'root-0001', parentSpanId: null, operation: 'job', startOffsetMs: 0, durationMs: 20, status: 'ok' }] };
 }
 describe('Mongo persistence contract', () => {
+  it('persists successful heartbeat connectivity even after a failed write without mutating factory state', async () => {
+    const c = collections(); const store = new MongoTelemetryStore(c, { retentionMs: 1000, maxSpansPerTrace: 10 });
+    const heartbeat: InstanceHeartbeat = {
+      schemaVersion: 1, instanceId: 'pod-a', serviceName: 'worker', hostName: 'pod-a', pid: 1,
+      bootId: '0199f0d0-0000-7000-8000-1a2b3c4d5e6f', startedAt: '2026-10-29T12:00:00.000Z', lastSeenAt: '2026-10-29T12:00:01.000Z',
+      versions: { node: '22.22.0', tracelet: '0.1.0' }, tracing: { enabled: true, sampleRate: 1 },
+      profiler: { state: 'disabled' }, buffer: { queueDepth: 0, droppedTraces: 0, droppedProfiles: 0 }, storage: { connected: false },
+    };
+    vi.mocked(c.instances.replaceOne).mockRejectedValueOnce(new Error('offline'));
+    await expect(store.writeHeartbeat(heartbeat)).rejects.toThrow('offline');
+    expect(store.storageHealth().connected).toBe(false);
+    await store.writeHeartbeat(heartbeat);
+    expect(c.instances.replaceOne).toHaveBeenLastCalledWith({ _id: 'pod-a' }, expect.objectContaining({ storage: { connected: true }, lastSeenAt: new Date(heartbeat.lastSeenAt) }), { upsert: true });
+    expect(store.storageHealth().connected).toBe(true);
+    expect(heartbeat.storage.connected).toBe(false);
+  });
   it('rejects own prototype-named unknown fields at the root and inside errors before writes', async () => {
     const c = collections(); const store = new MongoTelemetryStore(c, { retentionMs: 1000, maxSpansPerTrace: 10 });
     for (const key of ['constructor', 'toString', '__proto__']) {

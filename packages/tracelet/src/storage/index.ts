@@ -29,7 +29,7 @@ export function createStorage(config: TraceletModuleOptions, queue: TelemetryQue
   let wakeRetry: (() => void) | undefined;
   const connect = async () => {
     for (let attempt = 0; !stopped; attempt++) {
-      try { await client.connect(); if (stopped) return; await ensureTelemetryIndexes(collections); return; }
+      try { await client.connect(); if (stopped) return; await ensureTelemetryIndexes(collections); if (!stopped) heartbeat.start(); return; }
       catch { if (stopped) return; diagnostics.warn('startup', 'Storage connection or index setup failed; retrying.'); await new Promise<void>(resolve => { const timer = setTimeout(() => { wakeRetry = undefined; resolve(); }, retryDelay(attempt)); timer.unref?.(); wakeRetry = () => { clearTimeout(timer); wakeRetry = undefined; resolve(); }; }); }
     }
   };
@@ -39,8 +39,17 @@ export function createStorage(config: TraceletModuleOptions, queue: TelemetryQue
     finally { if (timer) clearTimeout(timer); }
   };
   return {
-    start(): void { runOutsideTrace(() => { if (started || stopped) return; started = true; writer.start(); heartbeat.start(); void connect(); }); },
-    stop(): Promise<void> { return runOutsideTrace(() => stopPromise ??= (async () => { stopped = true; wakeRetry?.(); heartbeat.stop(); const deadline = Date.now() + (b?.shutdownFlushTimeoutMs ?? 5000); await bounded(writer.shutdown(), deadline); await bounded(client.close(), deadline); })()); },
+    /** The query facade reads through the same pool (approved LEAD integration exposure). */
+    collections,
+    start(): void { runOutsideTrace(() => { if (started || stopped) return; started = true; writer.start(); void connect(); }); },
+    stop(): Promise<void> { return runOutsideTrace(() => stopPromise ??= (async () => {
+      stopped = true; wakeRetry?.(); heartbeat.stop();
+      const deadline = Date.now() + (b?.shutdownFlushTimeoutMs ?? 5000);
+      // The writer owns its deadline and synchronously accounts every remaining
+      // item before resolving. An outer race can resolve before that accounting.
+      await writer.shutdown();
+      await bounded(client.close(), deadline);
+    })()); },
     flush(): Promise<void> { return writer.flush(); },
     health: () => stopped ? { ...writer.storageHealth(), connected: false } : writer.storageHealth(),
   };

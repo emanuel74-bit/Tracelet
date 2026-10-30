@@ -72,13 +72,37 @@ describe('bounded writer', () => {
 describe('heartbeat writer', () => {
   it('rate limits safe failure diagnostics while continuing the heartbeat cadence', async () => {
     vi.useFakeTimers();
+    vi.spyOn(Math, 'random').mockReturnValue(1);
     const warn = vi.spyOn(Logger, 'warn').mockImplementation(() => undefined);
     const writeHeartbeat = vi.fn().mockRejectedValue(new Error('mongodb://user:secret@example'));
     const heartbeat = new HeartbeatWriter({ writeHeartbeat }, () => ({} as never));
     heartbeat.start(); await vi.advanceTimersByTimeAsync(30000); heartbeat.stop();
-    expect(writeHeartbeat).toHaveBeenCalledTimes(2);
+    expect(writeHeartbeat.mock.calls.length).toBeGreaterThan(2);
     expect(warn).toHaveBeenCalledTimes(1);
     expect(JSON.stringify(warn.mock.calls)).not.toContain('secret');
+  });
+  it('retries within 8 s after failures then restores the 30 s success cadence', async () => {
+    vi.useFakeTimers(); vi.setSystemTime(0); vi.spyOn(Math, 'random').mockReturnValue(1);
+    const timestamps: number[] = [];
+    const writeHeartbeat = vi.fn(async () => { timestamps.push(Date.now()); if (timestamps.length <= 6) throw new Error('offline'); });
+    const heartbeat = new HeartbeatWriter({ writeHeartbeat }, () => ({} as never));
+    heartbeat.start(); await vi.advanceTimersByTimeAsync(23500);
+    expect(timestamps).toEqual([0, 500, 1500, 3500, 7500, 15500, 23500]);
+    await vi.advanceTimersByTimeAsync(29999); expect(timestamps).toHaveLength(7);
+    await vi.advanceTimersByTimeAsync(1); expect(timestamps.at(-1)).toBe(53500);
+    heartbeat.stop();
+  });
+  it('does not overlap repeated start calls during a pending write or retry after a late stopped failure', async () => {
+    vi.useFakeTimers();
+    let reject!: (error: Error) => void;
+    const writeHeartbeat = vi.fn(() => new Promise<void>((_resolve, fail) => { reject = fail; }));
+    const heartbeat = new HeartbeatWriter({ writeHeartbeat }, () => ({} as never));
+    heartbeat.start(); await vi.advanceTimersByTimeAsync(0);
+    heartbeat.start(); await vi.advanceTimersByTimeAsync(60000);
+    expect(writeHeartbeat).toHaveBeenCalledTimes(1);
+    heartbeat.stop(); reject(new Error('offline')); await vi.advanceTimersByTimeAsync(60000);
+    heartbeat.start(); await vi.advanceTimersByTimeAsync(60000);
+    expect(writeHeartbeat).toHaveBeenCalledTimes(1);
   });
   it('is detached, non-overlapping, repeats after 30 s and stops', async () => {
     vi.useFakeTimers(); const contexts: unknown[] = [];
