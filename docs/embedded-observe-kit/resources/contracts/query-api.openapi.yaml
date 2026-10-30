@@ -271,6 +271,12 @@ components:
     cursor:
       name: cursor
       in: query
+      description: |
+        Opaque continuation token (CR-STO-002, approved). Version 2 cursors carry the first page's resolved time
+        window, so continuation with omitted `from`/`to` returns the same population from any pod; a request that also
+        sends explicit `from`/`to` must match the cursor's window or gets 400 INVALID_CURSOR. Version 1 cursors remain
+        valid only when the request pins explicit `from` and `to`. Changed filters, malformed, oversized (> 512 chars)
+        or out-of-cap cursors return 400 INVALID_CURSOR. Clients must treat the value as opaque.
       schema: { type: string, maxLength: 512 }
   responses:
     Error:
