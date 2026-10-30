@@ -46,3 +46,7 @@ Reviewed repairs close the earlier approved-layout/lifecycle, nested DTO, newer-
 Remaining Medium: default-window continuation recomputes now and rejects the changed resolved-filter hash. Fixed explicit bounds work; successful implicit-window continuation requires LEAD disposition of canonical CR-STO-002. That draft is not approval and frozen cursor fields were not modified. Stage04 remains incomplete; stage05 has not started.
 
 The reviewer did not independently verify full default suites, real Mongo or host compatibility. Parent/investigator validation is separately attributed in MISSION_REPORT.md. Earlier findings above are historical; this section is the current review disposition.
+
+## Superseding cursor v2 review —2026-10-30
+
+LEAD approved revision6; implemented and independently re-reviewed. Current verdict APPROVE for stage04 implementation checkpoint, source/evidence commitd26c5a5. No remaining Critical/High/Medium. Exact current independent run:42/42, --maxWorkers=1,exit0. Original parallel41/1 profile-cap timeout and isolated original-timeout pass are preserved in04_CURSOR_V2_REVIEW.md. Historical pending-CR findings above are resolved. RealMongo/integrated/host/release behavior remains unverified; default-suite/INS limitations are not called green.

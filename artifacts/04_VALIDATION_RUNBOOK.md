@@ -1,6 +1,6 @@
 # Stage 04 validation runbook
 
-Stage 04 remains unaccepted. These are reproduction commands, not passing evidence. Use only a disposable test Mongo database/credentials. No host compatibility or integration is asserted.
+Stage 04 implementation checkpoint is accepted at d26c5a5 after independent review. These reproduction commands are not blanket passing evidence; default-suite and real-Mongo limits remain in the review/report. Use only a disposable test Mongo database/credentials. No host compatibility or integration is asserted.
 
 From D:\codeShit\Tracelet-wt\m04, using consumed LEAD dependency commit 8d35b55 (MongoDB 6.21.0) and the locked toolchain:
 
@@ -29,4 +29,4 @@ GET /observe/api/v1/profiles?service=worker&from=2026-10-29T12:00:00.000Z&to=202
 GET /observe/api/v1/health
 ```
 
-Continue pagination with the same fixed bounds and filters plus the returned opaque cursor. Transparent continuation with omitted time bounds remains pending CR-STO-002; current code rejects a changed resolved-window hash instead of silently changing the effective filter. Inspect X-Tracelet-Skipped for newer schema documents. No public ingestion endpoint exists.
+Continue pagination with the same non-pagination filters and returned opaque v2 cursor. Original resolved bounds are restored from the cursor when omitted, across clocks and pods; supplied bounds must match. Legacy v1 is accepted only with both explicit bounds. LEAD-approved revision6 CR-STO-002 is implemented and independently reviewed. Inspect X-Tracelet-Skipped for newer schema documents. No public ingestion endpoint exists.

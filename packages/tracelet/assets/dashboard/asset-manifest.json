@@ -1,0 +1,24 @@
+{
+  "manifestVersion": 1,
+  "entry": "index.html",
+  "files": {
+    "assets/index-8H8qAzKJ.css": {
+      "size": 15338,
+      "sha256": "0d7a70a37c3c318a306e43ecf6f21b36a5a0379973e65264cf7b8605a660d2e1",
+      "contentType": "text/css; charset=utf-8",
+      "immutable": true
+    },
+    "assets/index-DZSRTth0.js": {
+      "size": 232148,
+      "sha256": "97e00b85f5dc261fb6a69865c726a35d5383e268ea6bb4c34b6d970f3d5aaa10",
+      "contentType": "text/javascript; charset=utf-8",
+      "immutable": true
+    },
+    "index.html": {
+      "size": 491,
+      "sha256": "3c4d17c7c3e6f44666b7150be7ced2a19d357edff9376deacbf041b39a08f1da",
+      "contentType": "text/html; charset=utf-8",
+      "immutable": false
+    }
+  }
+}
