@@ -41,6 +41,8 @@
   "devDependencies": {
     "@nestjs/common": "^11.1.4",
     "@nestjs/core": "^11.1.4",
+    "@nestjs/platform-express": "^11.2.8",
+    "@nestjs/platform-fastify": "^11.2.8",
     "@nestjs/testing": "^11.1.4",
     "@swc/core": "^1.13.0",
     "@types/node": "^22.0.0",
