@@ -218,7 +218,7 @@ describe('BoundedTelemetryQueue: drain, drops, waiting', () => {
     setTimeout(() => q.offer(trace(1)), 10);
     const t1 = Date.now();
     await waiting;
-    expect(Date.now() - t1).toBeLessThan(1000);
+    expect(Date.now() - t1).toBeLessThan(2500); // the wait ceiling is 5000: only the offer wake-up passes
 
     const t2 = Date.now();
     await q.waitForItems(5_000); // non-empty: immediate

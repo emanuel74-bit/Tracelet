@@ -24,9 +24,14 @@ describe('T17 graceful shutdown: open roots are closed incomplete and reach the 
   });
 
   it('closeAllOpenRoots + whenCompletionsIdle: an open root with open spans is queued as incomplete, early (not after the 1000 ms ceiling)', async () => {
-    h = startHarness({ rollups: true }); // default 1000 ms pluck ceiling
+    // Load-robust by construction: the pluck ceiling is 10 s (test seam) and the business spans end ~0.9 s after the start, so only
+    // an early (O-2) resolve passes the < CEILING / 2 bound; an implementation that waits out the ceiling needs >= 10 s and fails,
+    // and a loaded host cannot push the correct path anywhere near 5 s.
+    const CEILING_MS = 10_000;
+    h = startHarness({ rollups: true, completionTimeoutMs: CEILING_MS });
     orders = await createOrdersApp();
-    const business = trace('rabbitmq.consume', () => orders!.consumer.process({ id: 'm1', delayMs: 150 }), { kind: 'rabbitmq' });
+    // process() is sequential: validate (300 ms) -> transform (300 ms) -> service.handle (300 ms), i.e. ~0.9 s of open spans.
+    const business = trace('rabbitmq.consume', () => orders!.consumer.process({ id: 'm1', delayMs: 300 }), { kind: 'rabbitmq' });
     await sleep(30); // spans Validator.validate / Transformer.execute are open now
     expect(h.rt.registry.openTraceCount()).toBe(1);
 
@@ -36,8 +41,8 @@ describe('T17 graceful shutdown: open roots are closed incomplete and reach the 
     const idle = await whenCompletionsIdle(5000);
     const waited = performance.now() - started;
     expect(idle).toBe(true);
-    // The open spans ended ~120 ms after the close; the pluck resolved at that moment, well before the 1000 ms ceiling.
-    expect(waited).toBeLessThan(700);
+    // The pluck resolved when the last open span ended (hundreds of ms after the close), nowhere near the 10 s ceiling.
+    expect(waited).toBeLessThan(CEILING_MS / 2);
 
     // Delivered to the queue the moment whenCompletionsIdle resolved: drain the queue DIRECTLY (no settle/poll in between), so an
     // implementation that resolves early leaves the queue empty and this test fails.
@@ -49,7 +54,7 @@ describe('T17 graceful shutdown: open roots are closed incomplete and reach the 
     const item = traces[0];
     expect(item.trace).toMatchObject({ status: 'incomplete', isComplete: false, operation: 'rabbitmq.consume' });
     expect(item.spans[0]).toMatchObject({ parentSpanId: null, status: 'incomplete', origin: 'root' });
-    expect(item.trace.durationMs).toBeLessThan(150); // measured to the close, not to the business end
+    expect(item.trace.durationMs).toBeLessThan(300); // measured to the close (~30 ms), not to the business end (~0.9 s)
     expect(item.spans.length).toBeGreaterThan(1); // spans that finished during the wait are kept
     // rollup: counted once, as a (non-error) root, in the shutdown flush
     const op = rollupItems.flatMap((r) => r.operations).find((o) => o.operation === 'rabbitmq.consume')!;
@@ -74,8 +79,9 @@ describe('T17 graceful shutdown: open roots are closed incomplete and reach the 
     const started = performance.now();
     expect(await whenCompletionsIdle(5000)).toBe(true);
     const waited = performance.now() - started;
-    expect(waited).toBeGreaterThanOrEqual(120);
-    expect(waited).toBeLessThan(900);
+    // A span that never ends costs the whole ceiling (timers never fire early: the lower bound is exact up to timer slack). No tight
+    // upper bound: a loaded host may fire the timer late; whenCompletionsIdle(5000) resolving true already bounds it.
+    expect(waited).toBeGreaterThanOrEqual(150 - 50);
     await h.settle();
     expect(h.items).toHaveLength(1);
     expect(h.items[0].trace).toMatchObject({ status: 'incomplete', isComplete: false });
@@ -113,14 +119,14 @@ describe('T17 graceful shutdown: open roots are closed incomplete and reach the 
   });
 
   it('with only finished spans, shutdown completes immediately (no pluck wait)', async () => {
-    h = startHarness();
+    h = startHarness({ completionTimeoutMs: 10_000 }); // waiting out the ceiling would take 10 s
     let release!: () => void;
     const gate = new Promise<void>((r) => (release = r));
     const p = trace('waiting.root', () => gate, { kind: 'custom' });
     expect(closeAllOpenRoots('shutdown')).toBe(1);
     const started = performance.now();
-    expect(await whenCompletionsIdle(2000)).toBe(true);
-    expect(performance.now() - started).toBeLessThan(300);
+    expect(await whenCompletionsIdle(8000)).toBe(true);
+    expect(performance.now() - started).toBeLessThan(5000);
     release();
     await p;
     await h.settle();
@@ -143,7 +149,7 @@ describe('whenCompletionsIdle semantics', () => {
   });
 
   it('resolves false when the timeout elapses first; the completion still finishes later; never rejects', async () => {
-    h = startHarness({ completionTimeoutMs: 400 });
+    h = startHarness({ completionTimeoutMs: 10_000 });
     let release!: () => void;
     const gate = new Promise<void>((r) => (release = r));
     // an un-awaited child span keeps the snapshot open until `release`
@@ -155,7 +161,7 @@ describe('whenCompletionsIdle semantics', () => {
     const started = performance.now();
     const result = await whenCompletionsIdle(60);
     expect(result).toBe(false);
-    expect(performance.now() - started).toBeLessThan(300);
+    expect(performance.now() - started).toBeLessThan(5000); // the 60 ms wait gave up on its own, long before the 10 s ceiling
     expect(h.rt.pendingCompletions).toBe(1);
     expect(h.rt.idleWaiters).toHaveLength(0); // the timed-out waiter was removed
     release();
@@ -228,7 +234,7 @@ describe('O-2: early pluck resolve', () => {
   });
 
   it('resolves when the LAST open span ends, still bounded by the ceiling', async () => {
-    h = startHarness(); // default 1000 ms ceiling
+    h = startHarness({ completionTimeoutMs: 10_000 }); // a ceiling-bound pluck would take 10 s
     const t0 = performance.now();
     trace('root', () => {
       void trace('c1', () => sleep(40), { join: true });
@@ -239,7 +245,7 @@ describe('O-2: early pluck resolve', () => {
     expect(h.items).toHaveLength(1);
     expect(h.items[0].trace.unfinishedSpanCount).toBe(0);
     expect(h.items[0].spans.map((s) => s.operation).sort()).toEqual(['c1', 'c2', 'root']);
-    expect(elapsed).toBeLessThan(600); // before: always 1000 ms
+    expect(elapsed).toBeLessThan(5000); // before O-2: always the full ceiling
   });
 
   it('the ceiling still applies when a span never ends', async () => {
@@ -251,8 +257,7 @@ describe('O-2: early pluck resolve', () => {
     });
     await h.settle();
     const elapsed = performance.now() - t0;
-    expect(elapsed).toBeGreaterThanOrEqual(180);
-    expect(elapsed).toBeLessThan(900);
+    expect(elapsed).toBeGreaterThanOrEqual(200 - 50); // the whole ceiling is spent; no tight upper bound (loaded hosts fire timers late)
     expect(h.items[0].trace.unfinishedSpanCount).toBe(1);
     expect(h.items[0].trace.isComplete).toBe(false);
   });

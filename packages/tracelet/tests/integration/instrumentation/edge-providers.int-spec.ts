@@ -217,7 +217,7 @@ describe('T06-T08 edge providers (current behaviour, gating)', () => {
     expect(result).toBe(2);
     expect(ops).toEqual(['Streams.observable']);
     const span = item.spans.find((s) => s.operation === 'Streams.observable')!;
-    expect(span.durationMs).toBeLessThan(25); // the emission takes >= 40 ms; the span is only the call that built the Observable
+    expect(item.trace.durationMs - span.durationMs).toBeGreaterThanOrEqual(30); // the emission takes >= 40 ms AFTER the span ended (relative: load-robust)
     expect(item.trace.durationMs).toBeGreaterThan(35);
   });
 
@@ -231,7 +231,7 @@ describe('T06-T08 edge providers (current behaviour, gating)', () => {
     expect(result).toEqual([0, 1, 2]);
     expect(ops).toEqual(['Streams.iterate']);
     const span = item.spans.find((s) => s.operation === 'Streams.iterate')!;
-    expect(span.durationMs).toBeLessThan(15); // the iteration takes >= 60 ms
+    expect(item.trace.durationMs - span.durationMs).toBeGreaterThanOrEqual(40); // the iteration takes >= 60 ms AFTER the span ended (relative: load-robust)
     expect(item.trace.durationMs).toBeGreaterThan(50);
   });
 });
