@@ -53,6 +53,52 @@ export function keepAliveDisabledReason(
   return undefined;
 }
 
+/** The sampling interval (µs) the sampler passes to Profiler.setSamplingInterval for a given rate. */
+export function samplingIntervalUs(sampleRateHz: number): number {
+  return Math.max(100, Math.round(1e6 / sampleRateHz));
+}
+
+/**
+ * V8's SamplingEventsProcessor::Run on Windows spins (`while (TimeTicks::Now() < next) {}`) instead of sleeping whenever the
+ * time to the next sample is under 100 ms and precise sampling is on (always, via the inspector). V8 11.8+ (Node 21+) sleeps on
+ * a CREATE_WAITABLE_TIMER_HIGH_RESOLUTION timer instead, which needs Windows 10 1803 (build 17134); older V8, or that V8 on an
+ * older Windows build, keeps the busy-wait. Intervals of at least 110 ms (sampleRateHz <= 9) take the condition-variable path.
+ * Measured on Node 20.19.5 / Windows 10: one sampler thread at a full core while the application is idle (CR-002).
+ */
+const BUSY_WAIT_SAFE_INTERVAL_US = 110_000;
+const WIN_HIGH_RES_TIMER_BUILD = 17134;
+
+/** Why this runtime's V8 sampler thread busy-waits a core at this rate, or undefined when it does not. Pure; never throws. */
+export function samplerBusyWaitReason(
+  sampleRateHz: number,
+  platform: string = process.platform,
+  v8Version: string | undefined = process.versions.v8,
+  osRelease: string | undefined = osReleaseSafe(),
+): string | undefined {
+  if (platform !== 'win32') return undefined;
+  if (!(sampleRateHz > 0) || samplingIntervalUs(sampleRateHz) >= BUSY_WAIT_SAFE_INTERVAL_US) return undefined;
+  const [major = 0, minor = 0] = String(v8Version ?? '')
+    .split('.')
+    .map((p) => Number.parseInt(p, 10) || 0);
+  const preciseTimer = major > 11 || (major === 11 && minor >= 8);
+  const build = Number.parseInt(String(osRelease ?? '').split('.')[2] ?? '', 10);
+  if (preciseTimer && !(Number.isFinite(build) && build < WIN_HIGH_RES_TIMER_BUILD)) return undefined;
+  const why = preciseTimer ? `Windows build ${build} has no high-resolution waitable timer` : `V8 ${v8Version} predates its precise sleep timer`;
+  return (
+    `on Windows the V8 CPU sampler thread busy-waits about one core between samples at sampleRateHz ${sampleRateHz} (${why}); ` +
+    'use Node >= 22 on Windows 10 1803+, or sampleRateHz <= 9'
+  );
+}
+
+function osReleaseSafe(): string | undefined {
+  try {
+    const os = process.getBuiltinModule?.('node:os') as { release?: () => string } | undefined;
+    return os?.release?.();
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * Default keep-alive: a console profile on the in-process inspector (`node:inspector`'s `console.profile` / `profileEnd`, the
  * V8 console, not the global one), which counts as a started profile on every session whose Profiler domain is enabled. Returns
@@ -163,7 +209,7 @@ export class ContinuousCpuSampler {
         this.session = session;
         session.connect();
         await this.post('Profiler.enable');
-        await this.post('Profiler.setSamplingInterval', { interval: Math.max(100, Math.round(1e6 / this.opts.sampleRateHz)) });
+        await this.post('Profiler.setSamplingInterval', { interval: samplingIntervalUs(this.opts.sampleRateHz) });
         this.keepAlive = this.resolveKeepAlive();
         await this.beginProfile();
         this.lifecycle.startMs = this.now() - t0;
@@ -234,7 +280,16 @@ export class ContinuousCpuSampler {
     this.clearTimer();
     if (this.stopped) return;
     // armed outside any trace, unref'd: profiling never holds the process open
-    this.timer = runOutsideTrace(() => setTimeout(() => void this.tick(), this.opts.windowMs));
+    this.timer = runOutsideTrace(() =>
+      setTimeout(() => {
+        // a rotation must never become an unhandled rejection (that would terminate a host without a handler)
+        this.tick().catch((err: unknown) => {
+          this.rotating = false;
+          this.teardown();
+          this.safe(() => this.opts.onError(err));
+        });
+      }, this.opts.windowMs),
+    );
     this.timer.unref?.();
   }
 
@@ -307,8 +362,18 @@ export class ContinuousCpuSampler {
 
   private finishWindow(profile: V8Profile, stopStallMs: number, startStallMs: number, final: boolean): void | 'pause' {
     const d = this.now();
-    const fold = foldProfile(profile, this.opts.fold);
+    let fold: FoldResult;
+    try {
+      fold = foldProfile(profile, this.opts.fold);
+    } catch (err) {
+      // foldProfile validates its input and should not throw; if it does, the window is reported as malformed (a counted
+      // drop in the profiler) and the rotation loop carries on
+      const why = String(err instanceof Error ? err.message : err).slice(0, 120);
+      fold = { stacks: [], sampleCount: 0, idleSampleCount: 0, totalSampleCount: 0, malformed: `fold failed: ${why}` };
+    }
     const foldMs = this.now() - d;
+    const pStart = typeof profile?.startTime === 'number' ? profile.startTime : 0;
+    const pEnd = typeof profile?.endTime === 'number' ? profile.endTime : 0;
     let gapBeforeMs: number | undefined;
     let rawGap: number | undefined;
     if (fold.firstSampleUs !== undefined && this.lastSampleUs !== undefined) {
@@ -323,7 +388,7 @@ export class ContinuousCpuSampler {
       index: this.index++,
       periodStartMs: this.windowStartWall,
       periodEndMs: this.wall(),
-      durationMs: Math.max(0, (profile.endTime - profile.startTime) / 1000),
+      durationMs: Math.max(0, (pEnd - pStart) / 1000) || 0,
       fold,
       ...(gapBeforeMs !== undefined ? { gapBeforeMs } : {}),
       sampledSpanMs,

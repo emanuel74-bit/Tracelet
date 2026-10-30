@@ -27,10 +27,16 @@ const adversarial: Record<string, string> = {
   'aws rule': 'AKIA'.repeat(KB64 / 4),
 };
 
+/** Best of 5 runs. Flake fix: a single wall-clock sample is preempted by other processes/test files under CPU load (observed: aws rule over 50 ms
+ *  once in 25 loaded runs). A super-linear regression is seconds in EVERY run, so the minimum still proves the bound. */
 function timeMs(fn: () => void): number {
-  const t0 = performance.now();
-  fn();
-  return performance.now() - t0;
+  let best = Number.POSITIVE_INFINITY;
+  for (let i = 0; i < 5; i++) {
+    const t0 = performance.now();
+    fn();
+    best = Math.min(best, performance.now() - t0);
+  }
+  return best;
 }
 
 describe('redaction rules are linear on 64 KB adversarial input', () => {

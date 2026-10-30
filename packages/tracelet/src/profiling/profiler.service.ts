@@ -5,7 +5,7 @@ import type { Diagnostics } from '../shared/diagnostics.js';
 import { probeInspector } from './inspector-probe.js';
 import type { InspectorProbeResult } from './inspector-probe.js';
 import { toProfileItem } from './profile-mapper.js';
-import { ContinuousCpuSampler } from './vendor/cpu-sampler.js';
+import { ContinuousCpuSampler, samplerBusyWaitReason } from './vendor/cpu-sampler.js';
 import type { InspectorSessionLike, KeepAliveState, RotationKeepAlive, SamplerWindow } from './vendor/cpu-sampler.js';
 
 export const DEFAULT_SAMPLE_RATE_HZ = 99;
@@ -45,6 +45,11 @@ export interface ContinuousProfilerDeps {
    * the inspector console only with the default session and only when NODE_V8_COVERAGE / --cpu-prof are absent; null = off.
    */
   createKeepAlive?: (() => RotationKeepAlive | undefined) | null;
+  /**
+   * Test seam for the CR-002 gate. Default: samplerBusyWaitReason, but only when the REAL inspector session is used (an injected
+   * createSession cannot spin a V8 sampler thread, so fake-session tests are not gated).
+   */
+  busyWaitReason?: (sampleRateHz: number) => string | undefined;
   now?: () => number;
   wallClock?: () => number;
   retryDelayMs?: number;
@@ -79,6 +84,8 @@ export interface WindowRecord {
 
 export interface ProfilerDebug {
   windows: WindowRecord[];
+  /** Full (unclamped) current reason; profilerHealth().reason is clamped to the schema's 256 characters. */
+  reason?: string;
   /** Debug only. 'active' = rotations are bracketed by the keep-alive; 'off' = not used (see keepAliveOffReason); 'failed' = begin/end threw. */
   keepAlive: KeepAliveState;
   keepAliveOffReason?: string;
@@ -92,6 +99,13 @@ export interface ProfilerDebug {
     profilesOffered: number;
     profilesRejected: number;
     emptyWindows: number;
+    /** Windows whose V8 profile was structurally unusable (each also counted as profilesDropped). */
+    malformedWindows: number;
+    lastMalformedReason?: string;
+    /** Samples referencing an unknown node id, timeDeltas entries that were invalid, stacks cut by a parent-chain cycle. */
+    invalidSamples: number;
+    invalidDeltas: number;
+    cyclicStacks: number;
     backoffs: number;
     lastBackoffReason?: string;
     errors: number;
@@ -102,6 +116,12 @@ export interface ProfilerDebug {
 function dominant(start: number, stop: number, fold: number): string {
   const max = Math.max(start, stop, fold);
   return max === start ? 'startStallMs' : max === stop ? 'stopStallMs' : 'foldMs';
+}
+
+/** InstanceHeartbeat.profiler.reason is limited to 256 characters by the schema; the full text stays in debug(). */
+export const MAX_REASON_CHARS = 256;
+function clampReason(reason: string): string {
+  return reason.length <= MAX_REASON_CHARS ? reason : `${reason.slice(0, MAX_REASON_CHARS - 3)}...`;
 }
 
 function msg(err: unknown): string {
@@ -137,6 +157,10 @@ export class ContinuousProfiler implements ProfilerHealthSource {
     profilesOffered: 0,
     profilesRejected: 0,
     emptyWindows: 0,
+    malformedWindows: 0,
+    invalidSamples: 0,
+    invalidDeltas: 0,
+    cyclicStacks: 0,
     backoffs: 0,
     errors: 0,
     negativeGaps: 0,
@@ -150,9 +174,12 @@ export class ContinuousProfiler implements ProfilerHealthSource {
     private readonly config: ContinuousProfilerConfig,
     private readonly deps: ContinuousProfilerDeps,
   ) {
-    this.sampleRateHz = config.sampleRateHz ?? DEFAULT_SAMPLE_RATE_HZ;
-    this.windowMs = config.windowMs ?? DEFAULT_WINDOW_MS;
-    this.maxStallMs = config.maxStallMs ?? DEFAULT_MAX_STALL_MS;
+    // Defensive only (LEAD validates the documented ranges): a non-finite value falls back to the default and the sample rate is
+    // kept inside the schema's (0, 1000], so no configuration can produce a schema-invalid profile or a NaN timer.
+    const fin = (v: number | undefined, d: number): number => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : d);
+    this.sampleRateHz = Math.min(1000, fin(config.sampleRateHz, DEFAULT_SAMPLE_RATE_HZ));
+    this.windowMs = fin(config.windowMs, DEFAULT_WINDOW_MS);
+    this.maxStallMs = typeof config.maxStallMs === 'number' && Number.isFinite(config.maxStallMs) && config.maxStallMs >= 0 ? config.maxStallMs : DEFAULT_MAX_STALL_MS;
     this.diag = deps.diagnostics ?? createDiagnostics('Tracelet.Profiler');
     if (!config.enabled) {
       this.state = 'disabled';
@@ -163,7 +190,7 @@ export class ContinuousProfiler implements ProfilerHealthSource {
   profilerHealth(): ReturnType<ProfilerHealthSource['profilerHealth']> {
     return {
       state: this.state,
-      ...(this.reason !== undefined ? { reason: this.reason } : {}),
+      ...(this.reason !== undefined ? { reason: clampReason(this.reason) } : {}),
       sampleRateHz: this.sampleRateHz,
       ...(this.achieved !== undefined ? { achievedSampleRateHz: Math.round(this.achieved * 100) / 100 } : {}),
       windowMs: this.windowMs,
@@ -174,6 +201,7 @@ export class ContinuousProfiler implements ProfilerHealthSource {
   debug(): ProfilerDebug {
     return {
       windows: this.windows.slice(),
+      ...(this.reason !== undefined ? { reason: this.reason } : {}),
       keepAlive: this.keepAliveState,
       ...(this.keepAliveOffReason !== undefined ? { keepAliveOffReason: this.keepAliveOffReason } : {}),
       counters: { ...this.counters },
@@ -191,6 +219,15 @@ export class ContinuousProfiler implements ProfilerHealthSource {
       this.stopping = false;
       this.state = 'starting';
       this.reason = undefined;
+      // CR-002 option A: V8 11.3 on Windows busy-waits the sampler thread (about one core, always) when the sampling interval is under 100 ms.
+      // Refuse truthfully instead of burning a core: no probe session, no sampler session, no timer. sampleRateHz <= 9 is the explicit working opt-in.
+      const busyWait = (this.deps.busyWaitReason ?? (this.deps.createSession ? () => undefined : samplerBusyWaitReason))(this.sampleRateHz);
+      if (busyWait) {
+        this.state = 'unavailable';
+        this.reason = busyWait;
+        this.diag.warn('sampler-busy-wait', `[tracelet] profiler not started: ${busyWait}`);
+        return;
+      }
       const probe = (this.deps.probe ?? probeInspector)();
       if (!probe.available) {
         this.state = 'unavailable';
@@ -267,7 +304,16 @@ export class ContinuousProfiler implements ProfilerHealthSource {
     let offered = false;
     let accepted = false;
     try {
-      if (w.fold.totalSampleCount > 0) {
+      if (w.fold.invalidSampleCount) this.counters.invalidSamples += w.fold.invalidSampleCount;
+      if (w.fold.invalidDeltaCount) this.counters.invalidDeltas += w.fold.invalidDeltaCount;
+      if (w.fold.cycleCount) this.counters.cyclicStacks += w.fold.cycleCount;
+      if (w.fold.malformed !== undefined) {
+        // structurally unusable profile: nothing was folded; the whole window is a dropped profile
+        this.counters.malformedWindows++;
+        this.counters.lastMalformedReason = w.fold.malformed;
+        this.safeCount('profilesDropped');
+        this.diag.warn('malformed', `[tracelet] malformed V8 profile dropped: ${w.fold.malformed}`);
+      } else if (w.fold.totalSampleCount > 0) {
         const item = toProfileItem(w.fold, {
           serviceName: this.deps.serviceName,
           ...(this.deps.serviceVersion !== undefined ? { serviceVersion: this.deps.serviceVersion } : {}),

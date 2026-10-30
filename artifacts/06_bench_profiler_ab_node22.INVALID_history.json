@@ -1,0 +1,4180 @@
+{
+  "invalid": true,
+  "reason": "HISTORY ONLY. First Mission 06 A/B run: wall-throughput, cpuFraction and event-loop-delay deltas are invalid on Windows (the sampler changes timer granularity; Node 20 additionally busy-waits a core, CR-002). No overhead may be derived from these numbers.",
+  "generatedAt": "2026-10-29T16:13:33.732Z",
+  "node": "v22.22.0",
+  "cpu": "Intel(R) Core(TM) i5-7400 CPU @ 3.00GHz",
+  "cores": 4,
+  "totalMemGb": 17.1,
+  "platform": "win32 x64",
+  "fixture": {
+    "generatedFunctions": 12000
+  },
+  "config": {
+    "sampleRateHz": 99,
+    "windowMs": 4000,
+    "runMs": 8000,
+    "pairs": 8,
+    "order": "alternating off/on and on/off per pair; one discarded warm-up pair per scenario"
+  },
+  "scenarios": {
+    "codeheavy-cpu": {
+      "kind": "cpu",
+      "summary": {
+        "pairs": 8,
+        "higherIsBetter": true,
+        "workPerSecond": {
+          "meanOff": 8808.58,
+          "meanOn": 10084.273,
+          "stdevOff": 1101.912,
+          "stdevOn": 57.039,
+          "pairDeltaPercent": [
+            65.5,
+            10.05,
+            11.43,
+            8.64,
+            8.72,
+            9.38,
+            9.77,
+            9.65
+          ],
+          "meanDeltaPercent": 16.64,
+          "stdevDeltaPercent": 19.76,
+          "ci95HalfWidthPercent": 16.52,
+          "withinNoise": false
+        },
+        "cpuFraction": {
+          "meanOff": 0.941,
+          "meanOn": 0.998,
+          "stdevOff": 0.026,
+          "stdevOn": 0.004,
+          "pairDeltaPercent": [
+            0.78,
+            6.41,
+            9.19,
+            5.34,
+            7.39,
+            7.84,
+            4.29,
+            7.1
+          ],
+          "meanDeltaPercent": 6.04,
+          "stdevDeltaPercent": 2.6,
+          "ci95HalfWidthPercent": 2.18,
+          "withinNoise": false
+        },
+        "rssMb": {
+          "meanOff": 101.962,
+          "meanOn": 112.3,
+          "stdevOff": 10.219,
+          "stdevOn": 9.964,
+          "pairDeltaPercent": [
+            11.76,
+            9.51,
+            10.69,
+            7.74,
+            9.28,
+            8.51,
+            13.11,
+            11.52
+          ],
+          "meanDeltaPercent": 10.27,
+          "stdevDeltaPercent": 1.81,
+          "ci95HalfWidthPercent": 1.52,
+          "withinNoise": false
+        },
+        "heapUsedMb": {
+          "meanOff": 37.875,
+          "meanOn": 37.65,
+          "stdevOff": 3.356,
+          "stdevOn": 3.908,
+          "pairDeltaPercent": [
+            -2.02,
+            19.11,
+            -22.84,
+            -13.38,
+            14.33,
+            3.4,
+            2.09,
+            0.28
+          ],
+          "meanDeltaPercent": 0.12,
+          "stdevDeltaPercent": 13.58,
+          "ci95HalfWidthPercent": 11.36,
+          "withinNoise": true
+        },
+        "eventLoopDelayP99Ms": {
+          "meanOff": 7.988,
+          "meanOn": 5.513,
+          "stdevOff": 5.158,
+          "stdevOn": 0.026,
+          "pairDeltaPercent": [
+            -73.39,
+            -13.52,
+            -21.75,
+            -3.98,
+            -6.96,
+            -4.66,
+            -11.76,
+            -9.23
+          ],
+          "meanDeltaPercent": -18.16,
+          "stdevDeltaPercent": 23.04,
+          "ci95HalfWidthPercent": 19.26,
+          "withinNoise": true
+        },
+        "eventLoopDelayMaxMs": {
+          "meanOff": 31.823,
+          "meanOn": 7.417,
+          "stdevOff": 25.676,
+          "stdevOn": 1.723,
+          "pairDeltaPercent": [
+            -91.31,
+            -83.25,
+            -64.99,
+            -48.28,
+            -61.75,
+            -20.25,
+            -63.25,
+            -84.63
+          ],
+          "meanDeltaPercent": -64.71,
+          "stdevDeltaPercent": 23.01,
+          "ci95HalfWidthPercent": 19.24,
+          "withinNoise": false
+        },
+        "eventLoopUtilization": {
+          "meanOff": 1,
+          "meanOn": 1,
+          "stdevOff": 0,
+          "stdevOn": 0,
+          "pairDeltaPercent": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "meanDeltaPercent": 0,
+          "stdevDeltaPercent": 0,
+          "ci95HalfWidthPercent": 0,
+          "withinNoise": true
+        }
+      },
+      "stallSeriesAllOnRuns": {
+        "startStallMs": {
+          "values": [
+            0.46,
+            0.12,
+            0.13,
+            0.15,
+            0.12,
+            0.12,
+            0.23,
+            0.12
+          ],
+          "p50": 0.13,
+          "max": 0.46
+        },
+        "stopStallMs": {
+          "values": [
+            1.49,
+            1.21,
+            1.18,
+            1.72,
+            1.37,
+            1.2,
+            1.33,
+            1.25
+          ],
+          "p50": 1.33,
+          "max": 1.72
+        },
+        "foldMs": {
+          "values": [
+            2.77,
+            2,
+            1.7,
+            2.12,
+            2.01,
+            1.6,
+            1.73,
+            1.79
+          ],
+          "p50": 2,
+          "max": 2.77
+        },
+        "keepAliveMs": {
+          "values": [
+            0.28,
+            0.15,
+            0.15,
+            0.37,
+            0.15,
+            0.16,
+            0.27,
+            0.15
+          ],
+          "p50": 0.16,
+          "max": 0.37
+        }
+      },
+      "runs": [
+        {
+          "mode": "off",
+          "wallMs": 8000.5,
+          "work": 48730,
+          "workPerSecond": 6090.88,
+          "cpuFraction": 0.9961,
+          "cpuMs": 7969,
+          "rssMb": 103.7,
+          "heapUsedMb": 39.6,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 5.02,
+            "p99": 20.71,
+            "max": 87.95
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8000.4,
+          "work": 80645,
+          "workPerSecond": 10080.11,
+          "cpuFraction": 1.0039,
+          "cpuMs": 8032,
+          "rssMb": 115.9,
+          "heapUsedMb": 38.8,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 4.99,
+            "p99": 5.51,
+            "max": 7.64
+          },
+          "windows": 1,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.46
+              ],
+              "p50": 0.46,
+              "max": 0.46
+            },
+            "stopStallMs": {
+              "values": [
+                1.49
+              ],
+              "p50": 1.49,
+              "max": 1.49
+            },
+            "foldMs": {
+              "values": [
+                2.77
+              ],
+              "p50": 2.77,
+              "max": 2.77
+            },
+            "keepAliveMs": {
+              "values": [
+                0.28
+              ],
+              "p50": 0.28,
+              "max": 0.28
+            }
+          },
+          "achievedSampleRateHz": [
+            93.76
+          ],
+          "frames": {
+            "profiles": 2,
+            "samples": 747,
+            "idleSamples": 7,
+            "idleShare": 0.0093,
+            "programShare": 0.5435,
+            "gcShare": 0.0013,
+            "anonymousLeafShare": 0,
+            "nativeLeafShare": 0.0067,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8000,
+          "work": 73555,
+          "workPerSecond": 9194.32,
+          "cpuFraction": 0.9395,
+          "cpuMs": 7516,
+          "rssMb": 106.2,
+          "heapUsedMb": 36.1,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 5,
+            "p99": 6.36,
+            "max": 41.98
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8002.2,
+          "work": 80965,
+          "workPerSecond": 10117.89,
+          "cpuFraction": 0.9997,
+          "cpuMs": 8000,
+          "rssMb": 116.3,
+          "heapUsedMb": 43,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 4.98,
+            "p99": 5.5,
+            "max": 7.03
+          },
+          "windows": 1,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.12
+              ],
+              "p50": 0.12,
+              "max": 0.12
+            },
+            "stopStallMs": {
+              "values": [
+                1.21
+              ],
+              "p50": 1.21,
+              "max": 1.21
+            },
+            "foldMs": {
+              "values": [
+                2
+              ],
+              "p50": 2,
+              "max": 2
+            },
+            "keepAliveMs": {
+              "values": [
+                0.15
+              ],
+              "p50": 0.15,
+              "max": 0.15
+            }
+          },
+          "achievedSampleRateHz": [
+            93.64
+          ],
+          "frames": {
+            "profiles": 3,
+            "samples": 740,
+            "idleSamples": 12,
+            "idleShare": 0.016,
+            "programShare": 0.6149,
+            "gcShare": 0,
+            "anonymousLeafShare": 0,
+            "nativeLeafShare": 0.0135,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8000.3,
+          "work": 72640,
+          "workPerSecond": 9079.67,
+          "cpuFraction": 0.9121,
+          "cpuMs": 7297,
+          "rssMb": 106.6,
+          "heapUsedMb": 41.6,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 5.01,
+            "p99": 7.08,
+            "max": 18.51
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8002.1,
+          "work": 80960,
+          "workPerSecond": 10117.29,
+          "cpuFraction": 0.9959,
+          "cpuMs": 7969,
+          "rssMb": 118,
+          "heapUsedMb": 32.1,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 4.98,
+            "p99": 5.54,
+            "max": 6.48
+          },
+          "windows": 1,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.13
+              ],
+              "p50": 0.13,
+              "max": 0.13
+            },
+            "stopStallMs": {
+              "values": [
+                1.18
+              ],
+              "p50": 1.18,
+              "max": 1.18
+            },
+            "foldMs": {
+              "values": [
+                1.7
+              ],
+              "p50": 1.7,
+              "max": 1.7
+            },
+            "keepAliveMs": {
+              "values": [
+                0.15
+              ],
+              "p50": 0.15,
+              "max": 0.15
+            }
+          },
+          "achievedSampleRateHz": [
+            93.66
+          ],
+          "frames": {
+            "profiles": 3,
+            "samples": 738,
+            "idleSamples": 16,
+            "idleShare": 0.0212,
+            "programShare": 0.5799,
+            "gcShare": 0.0014,
+            "anonymousLeafShare": 0,
+            "nativeLeafShare": 0.0122,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8000.5,
+          "work": 74450,
+          "workPerSecond": 9305.7,
+          "cpuFraction": 0.9472,
+          "cpuMs": 7578,
+          "rssMb": 108.5,
+          "heapUsedMb": 41.1,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 5,
+            "p99": 5.78,
+            "max": 12.8
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8001.9,
+          "work": 80900,
+          "workPerSecond": 10110.09,
+          "cpuFraction": 0.9978,
+          "cpuMs": 7984,
+          "rssMb": 116.9,
+          "heapUsedMb": 35.6,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 4.98,
+            "p99": 5.55,
+            "max": 6.62
+          },
+          "windows": 1,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.15
+              ],
+              "p50": 0.15,
+              "max": 0.15
+            },
+            "stopStallMs": {
+              "values": [
+                1.72
+              ],
+              "p50": 1.72,
+              "max": 1.72
+            },
+            "foldMs": {
+              "values": [
+                2.12
+              ],
+              "p50": 2.12,
+              "max": 2.12
+            },
+            "keepAliveMs": {
+              "values": [
+                0.37
+              ],
+              "p50": 0.37,
+              "max": 0.37
+            }
+          },
+          "achievedSampleRateHz": [
+            93.48
+          ],
+          "frames": {
+            "profiles": 3,
+            "samples": 739,
+            "idleSamples": 12,
+            "idleShare": 0.016,
+            "programShare": 0.5765,
+            "gcShare": 0,
+            "anonymousLeafShare": 0,
+            "nativeLeafShare": 0.0095,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8000,
+          "work": 74565,
+          "workPerSecond": 9320.6,
+          "cpuFraction": 0.9239,
+          "cpuMs": 7391,
+          "rssMb": 108.8,
+          "heapUsedMb": 34.2,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 5,
+            "p99": 5.89,
+            "max": 17.07
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8000,
+          "work": 81065,
+          "workPerSecond": 10133.08,
+          "cpuFraction": 0.9922,
+          "cpuMs": 7938,
+          "rssMb": 118.9,
+          "heapUsedMb": 39.1,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 4.98,
+            "p99": 5.48,
+            "max": 6.53
+          },
+          "windows": 1,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.12
+              ],
+              "p50": 0.12,
+              "max": 0.12
+            },
+            "stopStallMs": {
+              "values": [
+                1.37
+              ],
+              "p50": 1.37,
+              "max": 1.37
+            },
+            "foldMs": {
+              "values": [
+                2.01
+              ],
+              "p50": 2.01,
+              "max": 2.01
+            },
+            "keepAliveMs": {
+              "values": [
+                0.15
+              ],
+              "p50": 0.15,
+              "max": 0.15
+            }
+          },
+          "achievedSampleRateHz": [
+            93.85
+          ],
+          "frames": {
+            "profiles": 2,
+            "samples": 742,
+            "idleSamples": 7,
+            "idleShare": 0.0093,
+            "programShare": 0.5593,
+            "gcShare": 0.0027,
+            "anonymousLeafShare": 0,
+            "nativeLeafShare": 0.0121,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8000.1,
+          "work": 73990,
+          "workPerSecond": 9248.6,
+          "cpuFraction": 0.9219,
+          "cpuMs": 7375,
+          "rssMb": 110.4,
+          "heapUsedMb": 41.2,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 5,
+            "p99": 5.8,
+            "max": 14.52
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8000.1,
+          "work": 80930,
+          "workPerSecond": 10116.17,
+          "cpuFraction": 0.9942,
+          "cpuMs": 7954,
+          "rssMb": 119.8,
+          "heapUsedMb": 42.6,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 4.98,
+            "p99": 5.53,
+            "max": 11.58
+          },
+          "windows": 1,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.12
+              ],
+              "p50": 0.12,
+              "max": 0.12
+            },
+            "stopStallMs": {
+              "values": [
+                1.2
+              ],
+              "p50": 1.2,
+              "max": 1.2
+            },
+            "foldMs": {
+              "values": [
+                1.6
+              ],
+              "p50": 1.6,
+              "max": 1.6
+            },
+            "keepAliveMs": {
+              "values": [
+                0.16
+              ],
+              "p50": 0.16,
+              "max": 0.16
+            }
+          },
+          "achievedSampleRateHz": [
+            93.21
+          ],
+          "frames": {
+            "profiles": 2,
+            "samples": 742,
+            "idleSamples": 7,
+            "idleShare": 0.0093,
+            "programShare": 0.6078,
+            "gcShare": 0.0013,
+            "anonymousLeafShare": 0.0013,
+            "nativeLeafShare": 0.0067,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8000.2,
+          "work": 73120,
+          "workPerSecond": 9139.73,
+          "cpuFraction": 0.957,
+          "cpuMs": 7656,
+          "rssMb": 84.7,
+          "heapUsedMb": 33.5,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 5.01,
+            "p99": 6.21,
+            "max": 18.56
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8000.2,
+          "work": 80265,
+          "workPerSecond": 10032.87,
+          "cpuFraction": 0.9981,
+          "cpuMs": 7985,
+          "rssMb": 95.8,
+          "heapUsedMb": 34.2,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 4.99,
+            "p99": 5.48,
+            "max": 6.82
+          },
+          "windows": 1,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.23
+              ],
+              "p50": 0.23,
+              "max": 0.23
+            },
+            "stopStallMs": {
+              "values": [
+                1.33
+              ],
+              "p50": 1.33,
+              "max": 1.33
+            },
+            "foldMs": {
+              "values": [
+                1.73
+              ],
+              "p50": 1.73,
+              "max": 1.73
+            },
+            "keepAliveMs": {
+              "values": [
+                0.27
+              ],
+              "p50": 0.27,
+              "max": 0.27
+            }
+          },
+          "achievedSampleRateHz": [
+            92.21
+          ],
+          "frames": {
+            "profiles": 2,
+            "samples": 736,
+            "idleSamples": 10,
+            "idleShare": 0.0134,
+            "programShare": 0.5734,
+            "gcShare": 0.0068,
+            "anonymousLeafShare": 0,
+            "nativeLeafShare": 0.0122,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8000.2,
+          "work": 72715,
+          "workPerSecond": 9089.14,
+          "cpuFraction": 0.9335,
+          "cpuMs": 7468,
+          "rssMb": 86.8,
+          "heapUsedMb": 35.7,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 5.01,
+            "p99": 6.07,
+            "max": 43.19
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8001.7,
+          "work": 79750,
+          "workPerSecond": 9966.68,
+          "cpuFraction": 0.9998,
+          "cpuMs": 8000,
+          "rssMb": 96.8,
+          "heapUsedMb": 35.8,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 4.99,
+            "p99": 5.51,
+            "max": 6.64
+          },
+          "windows": 1,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.12
+              ],
+              "p50": 0.12,
+              "max": 0.12
+            },
+            "stopStallMs": {
+              "values": [
+                1.25
+              ],
+              "p50": 1.25,
+              "max": 1.25
+            },
+            "foldMs": {
+              "values": [
+                1.79
+              ],
+              "p50": 1.79,
+              "max": 1.79
+            },
+            "keepAliveMs": {
+              "values": [
+                0.15
+              ],
+              "p50": 0.15,
+              "max": 0.15
+            }
+          },
+          "achievedSampleRateHz": [
+            93.34
+          ],
+          "frames": {
+            "profiles": 3,
+            "samples": 746,
+            "idleSamples": 6,
+            "idleShare": 0.008,
+            "programShare": 0.5925,
+            "gcShare": 0.008,
+            "anonymousLeafShare": 0,
+            "nativeLeafShare": 0.008,
+            "droppedSampleCount": 0
+          }
+        }
+      ]
+    },
+    "codeheavy-idle": {
+      "kind": "idle",
+      "summary": {
+        "pairs": 8,
+        "higherIsBetter": true,
+        "workPerSecond": {
+          "meanOff": 16.13,
+          "meanOn": 18.734,
+          "stdevOff": 0.123,
+          "stdevOn": 0.06,
+          "pairDeltaPercent": [
+            16.5,
+            18.2,
+            15.14,
+            15.48,
+            16.73,
+            15.43,
+            15.05,
+            16.66
+          ],
+          "meanDeltaPercent": 16.15,
+          "stdevDeltaPercent": 1.08,
+          "ci95HalfWidthPercent": 0.9,
+          "withinNoise": false
+        },
+        "cpuFraction": {
+          "meanOff": 0.002,
+          "meanOn": 0.001,
+          "stdevOff": 0.003,
+          "stdevOn": 0.001,
+          "pairDeltaPercent": [
+            0,
+            -100,
+            95,
+            0,
+            -74.68,
+            0,
+            0,
+            -100
+          ],
+          "meanDeltaPercent": -22.46,
+          "stdevDeltaPercent": 66.08,
+          "ci95HalfWidthPercent": 55.25,
+          "withinNoise": true
+        },
+        "rssMb": {
+          "meanOff": 84.4,
+          "meanOn": 94.613,
+          "stdevOff": 5.366,
+          "stdevOn": 4.975,
+          "pairDeltaPercent": [
+            11.28,
+            10.45,
+            11.59,
+            10.69,
+            14.65,
+            11.84,
+            13.77,
+            13.1
+          ],
+          "meanDeltaPercent": 12.17,
+          "stdevDeltaPercent": 1.51,
+          "ci95HalfWidthPercent": 1.26,
+          "withinNoise": false
+        },
+        "heapUsedMb": {
+          "meanOff": 33.113,
+          "meanOn": 33.275,
+          "stdevOff": 1.343,
+          "stdevOn": 1.173,
+          "pairDeltaPercent": [
+            1.21,
+            -0.88,
+            1.17,
+            -0.85,
+            1.26,
+            2.19,
+            0.93,
+            -0.93
+          ],
+          "meanDeltaPercent": 0.51,
+          "stdevDeltaPercent": 1.22,
+          "ci95HalfWidthPercent": 1.02,
+          "withinNoise": true
+        },
+        "eventLoopDelayP99Ms": {
+          "meanOff": 24.263,
+          "meanOn": 15.065,
+          "stdevOff": 4.184,
+          "stdevOn": 0.009,
+          "pairDeltaPercent": [
+            -22.1,
+            -37.3,
+            -38.48,
+            -55.39,
+            -36.39,
+            -33.87,
+            -37.04,
+            -31.76
+          ],
+          "meanDeltaPercent": -36.54,
+          "stdevDeltaPercent": 9.24,
+          "ci95HalfWidthPercent": 7.73,
+          "withinNoise": false
+        },
+        "eventLoopDelayMaxMs": {
+          "meanOff": 51.158,
+          "meanOn": 22.96,
+          "stdevOff": 36.919,
+          "stdevOn": 8.726,
+          "pairDeltaPercent": [
+            7.46,
+            -86.41,
+            7.2,
+            -57.66,
+            -55.83,
+            -39.57,
+            -21.97,
+            -74.3
+          ],
+          "meanDeltaPercent": -40.14,
+          "stdevDeltaPercent": 35.25,
+          "ci95HalfWidthPercent": 29.48,
+          "withinNoise": false
+        },
+        "eventLoopUtilization": {
+          "meanOff": 0.006,
+          "meanOn": 0.006,
+          "stdevOff": 0.001,
+          "stdevOn": 0,
+          "pairDeltaPercent": [
+            20.37,
+            20,
+            -1.56,
+            16.36,
+            -21.69,
+            20.75,
+            22.64,
+            19.61
+          ],
+          "meanDeltaPercent": 12.06,
+          "stdevDeltaPercent": 15.67,
+          "ci95HalfWidthPercent": 13.11,
+          "withinNoise": true
+        }
+      },
+      "stallSeriesAllOnRuns": {
+        "startStallMs": {
+          "values": [
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+            0.09,
+            0.1,
+            0.1,
+            0.1,
+            0.13,
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+            0.1
+          ],
+          "p50": 0.1,
+          "max": 0.13
+        },
+        "stopStallMs": {
+          "values": [
+            0.46,
+            0.47,
+            0.49,
+            0.43,
+            0.37,
+            0.42,
+            0.37,
+            0.45,
+            0.43,
+            0.52,
+            0.37,
+            0.45,
+            0.39,
+            0.44,
+            0.38,
+            0.45
+          ],
+          "p50": 0.44,
+          "max": 0.52
+        },
+        "foldMs": {
+          "values": [
+            0.18,
+            0.17,
+            0.17,
+            0.18,
+            0.19,
+            0.16,
+            0.16,
+            0.2,
+            0.36,
+            0.26,
+            0.17,
+            0.17,
+            0.19,
+            0.23,
+            0.17,
+            0.21
+          ],
+          "p50": 0.18,
+          "max": 0.36
+        },
+        "keepAliveMs": {
+          "values": [
+            0.15,
+            0.14,
+            0.2,
+            0.14,
+            0.14,
+            0.15,
+            0.14,
+            0.15,
+            0.18,
+            0.15,
+            0.14,
+            0.15,
+            0.14,
+            0.14,
+            0.14,
+            0.14
+          ],
+          "p50": 0.14,
+          "max": 0.2
+        }
+      },
+      "runs": [
+        {
+          "mode": "off",
+          "wallMs": 8032.9,
+          "work": 129,
+          "workPerSecond": 16.06,
+          "cpuFraction": 0,
+          "cpuMs": 0,
+          "rssMb": 87.8,
+          "heapUsedMb": 33,
+          "eventLoopUtilization": 0.0054,
+          "eventLoopDelayMs": {
+            "p50": 15.72,
+            "p99": 19.32,
+            "max": 32.29
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8016.2,
+          "work": 150,
+          "workPerSecond": 18.71,
+          "cpuFraction": 0,
+          "cpuMs": 0,
+          "rssMb": 97.7,
+          "heapUsedMb": 33.4,
+          "eventLoopUtilization": 0.0065,
+          "eventLoopDelayMs": {
+            "p50": 10.52,
+            "p99": 15.05,
+            "max": 34.7
+          },
+          "windows": 2,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.1,
+                0.1
+              ],
+              "p50": 0.1,
+              "max": 0.1
+            },
+            "stopStallMs": {
+              "values": [
+                0.46,
+                0.47
+              ],
+              "p50": 0.47,
+              "max": 0.47
+            },
+            "foldMs": {
+              "values": [
+                0.18,
+                0.17
+              ],
+              "p50": 0.18,
+              "max": 0.18
+            },
+            "keepAliveMs": {
+              "values": [
+                0.15,
+                0.14
+              ],
+              "p50": 0.15,
+              "max": 0.15
+            }
+          },
+          "achievedSampleRateHz": [
+            93.33,
+            93.19
+          ],
+          "frames": {
+            "profiles": 3,
+            "samples": 14,
+            "idleSamples": 737,
+            "idleShare": 0.9814,
+            "programShare": 0.5,
+            "gcShare": 0,
+            "anonymousLeafShare": 0.1429,
+            "nativeLeafShare": 0.2143,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8037.5,
+          "work": 128,
+          "workPerSecond": 15.93,
+          "cpuFraction": 0.002,
+          "cpuMs": 16,
+          "rssMb": 89,
+          "heapUsedMb": 34.1,
+          "eventLoopUtilization": 0.0055,
+          "eventLoopDelayMs": {
+            "p50": 15.61,
+            "p99": 24.05,
+            "max": 136.58
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8020.3,
+          "work": 151,
+          "workPerSecond": 18.83,
+          "cpuFraction": 0,
+          "cpuMs": 0,
+          "rssMb": 98.3,
+          "heapUsedMb": 33.8,
+          "eventLoopUtilization": 0.0066,
+          "eventLoopDelayMs": {
+            "p50": 10.52,
+            "p99": 15.08,
+            "max": 18.56
+          },
+          "windows": 2,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.1,
+                0.1
+              ],
+              "p50": 0.1,
+              "max": 0.1
+            },
+            "stopStallMs": {
+              "values": [
+                0.49,
+                0.43
+              ],
+              "p50": 0.49,
+              "max": 0.49
+            },
+            "foldMs": {
+              "values": [
+                0.17,
+                0.18
+              ],
+              "p50": 0.18,
+              "max": 0.18
+            },
+            "keepAliveMs": {
+              "values": [
+                0.2,
+                0.14
+              ],
+              "p50": 0.2,
+              "max": 0.2
+            }
+          },
+          "achievedSampleRateHz": [
+            94.06,
+            93.31
+          ],
+          "frames": {
+            "profiles": 3,
+            "samples": 13,
+            "idleSamples": 741,
+            "idleShare": 0.9828,
+            "programShare": 0.5385,
+            "gcShare": 0,
+            "anonymousLeafShare": 0.0769,
+            "nativeLeafShare": 0.2308,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8060.2,
+          "work": 131,
+          "workPerSecond": 16.25,
+          "cpuFraction": 0.002,
+          "cpuMs": 16,
+          "rssMb": 89.7,
+          "heapUsedMb": 34.3,
+          "eventLoopUtilization": 0.0064,
+          "eventLoopDelayMs": {
+            "p50": 15.64,
+            "p99": 24.48,
+            "max": 34.05
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8016.4,
+          "work": 150,
+          "workPerSecond": 18.71,
+          "cpuFraction": 0.0039,
+          "cpuMs": 31,
+          "rssMb": 100.1,
+          "heapUsedMb": 34.7,
+          "eventLoopUtilization": 0.0063,
+          "eventLoopDelayMs": {
+            "p50": 10.52,
+            "p99": 15.06,
+            "max": 36.5
+          },
+          "windows": 2,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.09,
+                0.1
+              ],
+              "p50": 0.1,
+              "max": 0.1
+            },
+            "stopStallMs": {
+              "values": [
+                0.37,
+                0.42
+              ],
+              "p50": 0.42,
+              "max": 0.42
+            },
+            "foldMs": {
+              "values": [
+                0.19,
+                0.16
+              ],
+              "p50": 0.19,
+              "max": 0.19
+            },
+            "keepAliveMs": {
+              "values": [
+                0.14,
+                0.15
+              ],
+              "p50": 0.15,
+              "max": 0.15
+            }
+          },
+          "achievedSampleRateHz": [
+            92.75,
+            93.13
+          ],
+          "frames": {
+            "profiles": 3,
+            "samples": 11,
+            "idleSamples": 738,
+            "idleShare": 0.9853,
+            "programShare": 0.5455,
+            "gcShare": 0,
+            "anonymousLeafShare": 0.0909,
+            "nativeLeafShare": 0.2727,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8048.6,
+          "work": 131,
+          "workPerSecond": 16.28,
+          "cpuFraction": 0,
+          "cpuMs": 0,
+          "rssMb": 90.7,
+          "heapUsedMb": 35.4,
+          "eventLoopUtilization": 0.0055,
+          "eventLoopDelayMs": {
+            "p50": 15.75,
+            "p99": 33.78,
+            "max": 37.88
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8032.8,
+          "work": 151,
+          "workPerSecond": 18.8,
+          "cpuFraction": 0.0019,
+          "cpuMs": 15,
+          "rssMb": 100.4,
+          "heapUsedMb": 35.1,
+          "eventLoopUtilization": 0.0064,
+          "eventLoopDelayMs": {
+            "p50": 10.52,
+            "p99": 15.07,
+            "max": 16.04
+          },
+          "windows": 2,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.1,
+                0.1
+              ],
+              "p50": 0.1,
+              "max": 0.1
+            },
+            "stopStallMs": {
+              "values": [
+                0.37,
+                0.45
+              ],
+              "p50": 0.45,
+              "max": 0.45
+            },
+            "foldMs": {
+              "values": [
+                0.16,
+                0.2
+              ],
+              "p50": 0.2,
+              "max": 0.2
+            },
+            "keepAliveMs": {
+              "values": [
+                0.14,
+                0.15
+              ],
+              "p50": 0.15,
+              "max": 0.15
+            }
+          },
+          "achievedSampleRateHz": [
+            93.92,
+            94.25
+          ],
+          "frames": {
+            "profiles": 3,
+            "samples": 14,
+            "idleSamples": 745,
+            "idleShare": 0.9816,
+            "programShare": 0.6429,
+            "gcShare": 0,
+            "anonymousLeafShare": 0,
+            "nativeLeafShare": 0.2143,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8020.1,
+          "work": 129,
+          "workPerSecond": 16.08,
+          "cpuFraction": 0.0079,
+          "cpuMs": 63,
+          "rssMb": 77.8,
+          "heapUsedMb": 31.7,
+          "eventLoopUtilization": 0.0083,
+          "eventLoopDelayMs": {
+            "p50": 15.56,
+            "p99": 23.69,
+            "max": 36.34
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8044.5,
+          "work": 151,
+          "workPerSecond": 18.77,
+          "cpuFraction": 0.002,
+          "cpuMs": 16,
+          "rssMb": 89.2,
+          "heapUsedMb": 32.1,
+          "eventLoopUtilization": 0.0065,
+          "eventLoopDelayMs": {
+            "p50": 10.52,
+            "p99": 15.07,
+            "max": 16.05
+          },
+          "windows": 2,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.13,
+                0.1
+              ],
+              "p50": 0.13,
+              "max": 0.13
+            },
+            "stopStallMs": {
+              "values": [
+                0.43,
+                0.52
+              ],
+              "p50": 0.52,
+              "max": 0.52
+            },
+            "foldMs": {
+              "values": [
+                0.36,
+                0.26
+              ],
+              "p50": 0.36,
+              "max": 0.36
+            },
+            "keepAliveMs": {
+              "values": [
+                0.18,
+                0.15
+              ],
+              "p50": 0.18,
+              "max": 0.18
+            }
+          },
+          "achievedSampleRateHz": [
+            94.44,
+            93.26
+          ],
+          "frames": {
+            "profiles": 3,
+            "samples": 15,
+            "idleSamples": 744,
+            "idleShare": 0.9802,
+            "programShare": 0.6,
+            "gcShare": 0,
+            "anonymousLeafShare": 0,
+            "nativeLeafShare": 0.2,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8026.6,
+          "work": 130,
+          "workPerSecond": 16.2,
+          "cpuFraction": 0,
+          "cpuMs": 0,
+          "rssMb": 79.4,
+          "heapUsedMb": 31.9,
+          "eventLoopUtilization": 0.0053,
+          "eventLoopDelayMs": {
+            "p50": 15.63,
+            "p99": 22.79,
+            "max": 26.51
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8019.7,
+          "work": 150,
+          "workPerSecond": 18.7,
+          "cpuFraction": 0.002,
+          "cpuMs": 16,
+          "rssMb": 88.8,
+          "heapUsedMb": 32.6,
+          "eventLoopUtilization": 0.0064,
+          "eventLoopDelayMs": {
+            "p50": 10.52,
+            "p99": 15.07,
+            "max": 16.02
+          },
+          "windows": 2,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.1,
+                0.1
+              ],
+              "p50": 0.1,
+              "max": 0.1
+            },
+            "stopStallMs": {
+              "values": [
+                0.37,
+                0.45
+              ],
+              "p50": 0.45,
+              "max": 0.45
+            },
+            "foldMs": {
+              "values": [
+                0.17,
+                0.17
+              ],
+              "p50": 0.17,
+              "max": 0.17
+            },
+            "keepAliveMs": {
+              "values": [
+                0.14,
+                0.15
+              ],
+              "p50": 0.15,
+              "max": 0.15
+            }
+          },
+          "achievedSampleRateHz": [
+            93.62,
+            93.42
+          ],
+          "frames": {
+            "profiles": 3,
+            "samples": 13,
+            "idleSamples": 741,
+            "idleShare": 0.9828,
+            "programShare": 0.6154,
+            "gcShare": 0,
+            "anonymousLeafShare": 0,
+            "nativeLeafShare": 0.2308,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8017.8,
+          "work": 130,
+          "workPerSecond": 16.21,
+          "cpuFraction": 0,
+          "cpuMs": 0,
+          "rssMb": 79.9,
+          "heapUsedMb": 32.1,
+          "eventLoopUtilization": 0.0053,
+          "eventLoopDelayMs": {
+            "p50": 15.65,
+            "p99": 23.92,
+            "max": 35.68
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8041.1,
+          "work": 150,
+          "workPerSecond": 18.65,
+          "cpuFraction": 0,
+          "cpuMs": 0,
+          "rssMb": 90.9,
+          "heapUsedMb": 32.4,
+          "eventLoopUtilization": 0.0065,
+          "eventLoopDelayMs": {
+            "p50": 10.52,
+            "p99": 15.06,
+            "max": 27.84
+          },
+          "windows": 2,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.1,
+                0.1
+              ],
+              "p50": 0.1,
+              "max": 0.1
+            },
+            "stopStallMs": {
+              "values": [
+                0.39,
+                0.44
+              ],
+              "p50": 0.44,
+              "max": 0.44
+            },
+            "foldMs": {
+              "values": [
+                0.19,
+                0.23
+              ],
+              "p50": 0.23,
+              "max": 0.23
+            },
+            "keepAliveMs": {
+              "values": [
+                0.14,
+                0.14
+              ],
+              "p50": 0.14,
+              "max": 0.14
+            }
+          },
+          "achievedSampleRateHz": [
+            92.05,
+            92.86
+          ],
+          "frames": {
+            "profiles": 3,
+            "samples": 11,
+            "idleSamples": 736,
+            "idleShare": 0.9853,
+            "programShare": 0.3636,
+            "gcShare": 0,
+            "anonymousLeafShare": 0.0909,
+            "nativeLeafShare": 0.2727,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8044.9,
+          "work": 129,
+          "workPerSecond": 16.03,
+          "cpuFraction": 0.0019,
+          "cpuMs": 15,
+          "rssMb": 80.9,
+          "heapUsedMb": 32.4,
+          "eventLoopUtilization": 0.0051,
+          "eventLoopDelayMs": {
+            "p50": 15.63,
+            "p99": 22.07,
+            "max": 69.93
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8019.9,
+          "work": 150,
+          "workPerSecond": 18.7,
+          "cpuFraction": 0,
+          "cpuMs": 0,
+          "rssMb": 91.5,
+          "heapUsedMb": 32.1,
+          "eventLoopUtilization": 0.0061,
+          "eventLoopDelayMs": {
+            "p50": 10.52,
+            "p99": 15.06,
+            "max": 17.97
+          },
+          "windows": 2,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.1,
+                0.1
+              ],
+              "p50": 0.1,
+              "max": 0.1
+            },
+            "stopStallMs": {
+              "values": [
+                0.38,
+                0.45
+              ],
+              "p50": 0.45,
+              "max": 0.45
+            },
+            "foldMs": {
+              "values": [
+                0.17,
+                0.21
+              ],
+              "p50": 0.21,
+              "max": 0.21
+            },
+            "keepAliveMs": {
+              "values": [
+                0.14,
+                0.14
+              ],
+              "p50": 0.14,
+              "max": 0.14
+            }
+          },
+          "achievedSampleRateHz": [
+            93.79,
+            92.02
+          ],
+          "frames": {
+            "profiles": 3,
+            "samples": 12,
+            "idleSamples": 736,
+            "idleShare": 0.984,
+            "programShare": 0.5833,
+            "gcShare": 0,
+            "anonymousLeafShare": 0,
+            "nativeLeafShare": 0.25,
+            "droppedSampleCount": 0
+          }
+        }
+      ]
+    },
+    "nest-cpu": {
+      "kind": "cpu",
+      "summary": {
+        "pairs": 8,
+        "higherIsBetter": true,
+        "workPerSecond": {
+          "meanOff": 772.776,
+          "meanOn": 1268.407,
+          "stdevOff": 11.679,
+          "stdevOn": 19.888,
+          "pairDeltaPercent": [
+            59.44,
+            62.74,
+            61.36,
+            70.08,
+            62.48,
+            66.44,
+            67.13,
+            63.67
+          ],
+          "meanDeltaPercent": 64.17,
+          "stdevDeltaPercent": 3.47,
+          "ci95HalfWidthPercent": 2.9,
+          "withinNoise": false
+        },
+        "cpuFraction": {
+          "meanOff": 0.261,
+          "meanOn": 0.376,
+          "stdevOff": 0.049,
+          "stdevOn": 0.094,
+          "pairDeltaPercent": [
+            84.7,
+            23.15,
+            18.39,
+            162.79,
+            -16.73,
+            90.04,
+            56.7,
+            -4.84
+          ],
+          "meanDeltaPercent": 51.77,
+          "stdevDeltaPercent": 59.44,
+          "ci95HalfWidthPercent": 49.7,
+          "withinNoise": false
+        },
+        "rssMb": {
+          "meanOff": 108.913,
+          "meanOn": 118.025,
+          "stdevOff": 5.383,
+          "stdevOn": 5.53,
+          "pairDeltaPercent": [
+            9.04,
+            8.82,
+            8.79,
+            8.82,
+            9.43,
+            7.09,
+            8.38,
+            6.69
+          ],
+          "meanDeltaPercent": 8.38,
+          "stdevDeltaPercent": 0.97,
+          "ci95HalfWidthPercent": 0.81,
+          "withinNoise": false
+        },
+        "heapUsedMb": {
+          "meanOff": 36.938,
+          "meanOn": 35.438,
+          "stdevOff": 4.076,
+          "stdevOn": 3.582,
+          "pairDeltaPercent": [
+            -3.05,
+            -2.39,
+            4.27,
+            -22.39,
+            27.93,
+            -2.62,
+            -18.53,
+            -7.08
+          ],
+          "meanDeltaPercent": -2.98,
+          "stdevDeltaPercent": 15.32,
+          "ci95HalfWidthPercent": 12.81,
+          "withinNoise": true
+        },
+        "eventLoopDelayP99Ms": {
+          "meanOff": 26.645,
+          "meanOn": 21.221,
+          "stdevOff": 1.298,
+          "stdevOn": 0.444,
+          "pairDeltaPercent": [
+            -19.44,
+            -18.5,
+            -24.17,
+            -15.95,
+            -21.42,
+            -16.3,
+            -29.37,
+            -16.17
+          ],
+          "meanDeltaPercent": -20.17,
+          "stdevDeltaPercent": 4.7,
+          "ci95HalfWidthPercent": 3.93,
+          "withinNoise": false
+        },
+        "eventLoopDelayMaxMs": {
+          "meanOff": 39.315,
+          "meanOn": 24.193,
+          "stdevOff": 8.146,
+          "stdevOn": 3.011,
+          "pairDeltaPercent": [
+            -31.5,
+            -41.39,
+            -40.74,
+            -34.13,
+            -31.23,
+            -29.46,
+            -45.69,
+            -45.99
+          ],
+          "meanDeltaPercent": -37.52,
+          "stdevDeltaPercent": 6.72,
+          "ci95HalfWidthPercent": 5.62,
+          "withinNoise": false
+        },
+        "eventLoopUtilization": {
+          "meanOff": 0.249,
+          "meanOn": 0.398,
+          "stdevOff": 0.004,
+          "stdevOn": 0.006,
+          "pairDeltaPercent": [
+            56.07,
+            59.21,
+            57.16,
+            66.48,
+            58.32,
+            63.32,
+            62.37,
+            58.08
+          ],
+          "meanDeltaPercent": 60.13,
+          "stdevDeltaPercent": 3.57,
+          "ci95HalfWidthPercent": 2.98,
+          "withinNoise": false
+        }
+      },
+      "stallSeriesAllOnRuns": {
+        "startStallMs": {
+          "values": [
+            0.12,
+            0.15,
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+            0.11,
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+            0.1
+          ],
+          "p50": 0.1,
+          "max": 0.15
+        },
+        "stopStallMs": {
+          "values": [
+            0.69,
+            0.73,
+            0.54,
+            0.53,
+            0.52,
+            0.53,
+            0.52,
+            0.53,
+            0.58,
+            0.56,
+            0.62,
+            0.5,
+            0.54
+          ],
+          "p50": 0.54,
+          "max": 0.73
+        },
+        "foldMs": {
+          "values": [
+            0.48,
+            0.41,
+            0.36,
+            0.36,
+            0.39,
+            0.3,
+            0.27,
+            0.33,
+            0.34,
+            0.29,
+            0.33,
+            0.21,
+            0.23
+          ],
+          "p50": 0.33,
+          "max": 0.48
+        },
+        "keepAliveMs": {
+          "values": [
+            0.19,
+            0.25,
+            0.14,
+            0.14,
+            0.15,
+            0.14,
+            0.15,
+            0.14,
+            0.15,
+            0.14,
+            0.14,
+            0.14,
+            0.13
+          ],
+          "p50": 0.14,
+          "max": 0.25
+        }
+      },
+      "runs": [
+        {
+          "mode": "off",
+          "wallMs": 8032.9,
+          "work": 6357,
+          "workPerSecond": 791.37,
+          "cpuFraction": 0.2607,
+          "cpuMs": 2094,
+          "rssMb": 96.2,
+          "heapUsedMb": 39.4,
+          "eventLoopUtilization": 0.2547,
+          "eventLoopDelayMs": {
+            "p50": 14.92,
+            "p99": 25.62,
+            "max": 32.03
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8014.1,
+          "work": 10112,
+          "workPerSecond": 1261.78,
+          "cpuFraction": 0.4815,
+          "cpuMs": 3859,
+          "rssMb": 104.9,
+          "heapUsedMb": 38.2,
+          "eventLoopUtilization": 0.3975,
+          "eventLoopDelayMs": {
+            "p50": 9.76,
+            "p99": 20.64,
+            "max": 21.94
+          },
+          "windows": 1,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.12
+              ],
+              "p50": 0.12,
+              "max": 0.12
+            },
+            "stopStallMs": {
+              "values": [
+                0.69
+              ],
+              "p50": 0.69,
+              "max": 0.69
+            },
+            "foldMs": {
+              "values": [
+                0.48
+              ],
+              "p50": 0.48,
+              "max": 0.48
+            },
+            "keepAliveMs": {
+              "values": [
+                0.19
+              ],
+              "p50": 0.19,
+              "max": 0.19
+            }
+          },
+          "achievedSampleRateHz": [
+            92.29
+          ],
+          "frames": {
+            "profiles": 2,
+            "samples": 181,
+            "idleSamples": 565,
+            "idleShare": 0.7574,
+            "programShare": 0.0608,
+            "gcShare": 0.0166,
+            "anonymousLeafShare": 0.0276,
+            "nativeLeafShare": 0.6354,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8036.7,
+          "work": 6242,
+          "workPerSecond": 776.68,
+          "cpuFraction": 0.2294,
+          "cpuMs": 1844,
+          "rssMb": 108.8,
+          "heapUsedMb": 33.5,
+          "eventLoopUtilization": 0.2496,
+          "eventLoopDelayMs": {
+            "p50": 14.78,
+            "p99": 26.05,
+            "max": 39.16
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8020.1,
+          "work": 10137,
+          "workPerSecond": 1263.95,
+          "cpuFraction": 0.2825,
+          "cpuMs": 2266,
+          "rssMb": 118.4,
+          "heapUsedMb": 32.7,
+          "eventLoopUtilization": 0.3974,
+          "eventLoopDelayMs": {
+            "p50": 10.31,
+            "p99": 21.23,
+            "max": 22.95
+          },
+          "windows": 1,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.15
+              ],
+              "p50": 0.15,
+              "max": 0.15
+            },
+            "stopStallMs": {
+              "values": [
+                0.73
+              ],
+              "p50": 0.73,
+              "max": 0.73
+            },
+            "foldMs": {
+              "values": [
+                0.41
+              ],
+              "p50": 0.41,
+              "max": 0.41
+            },
+            "keepAliveMs": {
+              "values": [
+                0.25
+              ],
+              "p50": 0.25,
+              "max": 0.25
+            }
+          },
+          "achievedSampleRateHz": [
+            92.02
+          ],
+          "frames": {
+            "profiles": 2,
+            "samples": 166,
+            "idleSamples": 582,
+            "idleShare": 0.7781,
+            "programShare": 0.0843,
+            "gcShare": 0.012,
+            "anonymousLeafShare": 0.0422,
+            "nativeLeafShare": 0.6506,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8024.4,
+          "work": 6176,
+          "workPerSecond": 769.65,
+          "cpuFraction": 0.329,
+          "cpuMs": 2640,
+          "rssMb": 109.2,
+          "heapUsedMb": 35.1,
+          "eventLoopUtilization": 0.2472,
+          "eventLoopDelayMs": {
+            "p50": 14.93,
+            "p99": 27.85,
+            "max": 38.93
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8022.2,
+          "work": 9963,
+          "workPerSecond": 1241.93,
+          "cpuFraction": 0.3895,
+          "cpuMs": 3125,
+          "rssMb": 118.8,
+          "heapUsedMb": 36.6,
+          "eventLoopUtilization": 0.3885,
+          "eventLoopDelayMs": {
+            "p50": 10.05,
+            "p99": 21.12,
+            "max": 23.07
+          },
+          "windows": 2,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.1,
+                0.1
+              ],
+              "p50": 0.1,
+              "max": 0.1
+            },
+            "stopStallMs": {
+              "values": [
+                0.54,
+                0.53
+              ],
+              "p50": 0.54,
+              "max": 0.54
+            },
+            "foldMs": {
+              "values": [
+                0.36,
+                0.36
+              ],
+              "p50": 0.36,
+              "max": 0.36
+            },
+            "keepAliveMs": {
+              "values": [
+                0.14,
+                0.14
+              ],
+              "p50": 0.14,
+              "max": 0.14
+            }
+          },
+          "achievedSampleRateHz": [
+            92.81,
+            93.55
+          ],
+          "frames": {
+            "profiles": 3,
+            "samples": 190,
+            "idleSamples": 561,
+            "idleShare": 0.747,
+            "programShare": 0.0474,
+            "gcShare": 0.0105,
+            "anonymousLeafShare": 0.0421,
+            "nativeLeafShare": 0.6842,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8029.9,
+          "work": 6176,
+          "workPerSecond": 769.12,
+          "cpuFraction": 0.1712,
+          "cpuMs": 1375,
+          "rssMb": 110,
+          "heapUsedMb": 45.1,
+          "eventLoopUtilization": 0.2461,
+          "eventLoopDelayMs": {
+            "p50": 15.32,
+            "p99": 25.9,
+            "max": 35.72
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8023.8,
+          "work": 10496,
+          "workPerSecond": 1308.11,
+          "cpuFraction": 0.4499,
+          "cpuMs": 3610,
+          "rssMb": 119.7,
+          "heapUsedMb": 35,
+          "eventLoopUtilization": 0.4097,
+          "eventLoopDelayMs": {
+            "p50": 10.55,
+            "p99": 21.77,
+            "max": 23.53
+          },
+          "windows": 2,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.1,
+                0.1
+              ],
+              "p50": 0.1,
+              "max": 0.1
+            },
+            "stopStallMs": {
+              "values": [
+                0.52,
+                0.53
+              ],
+              "p50": 0.53,
+              "max": 0.53
+            },
+            "foldMs": {
+              "values": [
+                0.39,
+                0.3
+              ],
+              "p50": 0.39,
+              "max": 0.39
+            },
+            "keepAliveMs": {
+              "values": [
+                0.15,
+                0.14
+              ],
+              "p50": 0.15,
+              "max": 0.15
+            }
+          },
+          "achievedSampleRateHz": [
+            93.7,
+            93.95
+          ],
+          "frames": {
+            "profiles": 3,
+            "samples": 153,
+            "idleSamples": 603,
+            "idleShare": 0.7976,
+            "programShare": 0.0523,
+            "gcShare": 0.0131,
+            "anonymousLeafShare": 0.0392,
+            "nativeLeafShare": 0.6405,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8020,
+          "work": 6240,
+          "workPerSecond": 778.05,
+          "cpuFraction": 0.2786,
+          "cpuMs": 2234,
+          "rssMb": 110.3,
+          "heapUsedMb": 33.3,
+          "eventLoopUtilization": 0.25,
+          "eventLoopDelayMs": {
+            "p50": 14.78,
+            "p99": 26.98,
+            "max": 33.78
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8013.9,
+          "work": 10131,
+          "workPerSecond": 1264.18,
+          "cpuFraction": 0.232,
+          "cpuMs": 1859,
+          "rssMb": 120.7,
+          "heapUsedMb": 42.6,
+          "eventLoopUtilization": 0.3958,
+          "eventLoopDelayMs": {
+            "p50": 10.04,
+            "p99": 21.2,
+            "max": 23.23
+          },
+          "windows": 2,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.11,
+                0.1
+              ],
+              "p50": 0.11,
+              "max": 0.11
+            },
+            "stopStallMs": {
+              "values": [
+                0.52,
+                0.53
+              ],
+              "p50": 0.53,
+              "max": 0.53
+            },
+            "foldMs": {
+              "values": [
+                0.27,
+                0.33
+              ],
+              "p50": 0.33,
+              "max": 0.33
+            },
+            "keepAliveMs": {
+              "values": [
+                0.15,
+                0.14
+              ],
+              "p50": 0.15,
+              "max": 0.15
+            }
+          },
+          "achievedSampleRateHz": [
+            93.72,
+            93.38
+          ],
+          "frames": {
+            "profiles": 3,
+            "samples": 178,
+            "idleSamples": 575,
+            "idleShare": 0.7636,
+            "programShare": 0.0506,
+            "gcShare": 0.0225,
+            "anonymousLeafShare": 0.0337,
+            "nativeLeafShare": 0.6348,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8042,
+          "work": 6193,
+          "workPerSecond": 770.08,
+          "cpuFraction": 0.237,
+          "cpuMs": 1906,
+          "rssMb": 112.9,
+          "heapUsedMb": 34.4,
+          "eventLoopUtilization": 0.2459,
+          "eventLoopDelayMs": {
+            "p50": 14.59,
+            "p99": 26.07,
+            "max": 35.03
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8014.4,
+          "work": 10272,
+          "workPerSecond": 1281.69,
+          "cpuFraction": 0.4504,
+          "cpuMs": 3610,
+          "rssMb": 120.9,
+          "heapUsedMb": 33.5,
+          "eventLoopUtilization": 0.4016,
+          "eventLoopDelayMs": {
+            "p50": 9.91,
+            "p99": 21.82,
+            "max": 24.71
+          },
+          "windows": 1,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.1
+              ],
+              "p50": 0.1,
+              "max": 0.1
+            },
+            "stopStallMs": {
+              "values": [
+                0.58
+              ],
+              "p50": 0.58,
+              "max": 0.58
+            },
+            "foldMs": {
+              "values": [
+                0.34
+              ],
+              "p50": 0.34,
+              "max": 0.34
+            },
+            "keepAliveMs": {
+              "values": [
+                0.15
+              ],
+              "p50": 0.15,
+              "max": 0.15
+            }
+          },
+          "achievedSampleRateHz": [
+            93.87
+          ],
+          "frames": {
+            "profiles": 2,
+            "samples": 159,
+            "idleSamples": 594,
+            "idleShare": 0.7888,
+            "programShare": 0.0755,
+            "gcShare": 0,
+            "anonymousLeafShare": 0.0377,
+            "nativeLeafShare": 0.673,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8020.7,
+          "work": 6016,
+          "workPerSecond": 750.06,
+          "cpuFraction": 0.2748,
+          "cpuMs": 2204,
+          "rssMb": 113.3,
+          "heapUsedMb": 39.4,
+          "eventLoopUtilization": 0.2429,
+          "eventLoopDelayMs": {
+            "p50": 14.72,
+            "p99": 29.21,
+            "max": 57.8
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8018.7,
+          "work": 10052,
+          "workPerSecond": 1253.57,
+          "cpuFraction": 0.4306,
+          "cpuMs": 3453,
+          "rssMb": 122.8,
+          "heapUsedMb": 32.1,
+          "eventLoopUtilization": 0.3944,
+          "eventLoopDelayMs": {
+            "p50": 9.98,
+            "p99": 20.63,
+            "max": 31.39
+          },
+          "windows": 2,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.1,
+                0.1
+              ],
+              "p50": 0.1,
+              "max": 0.1
+            },
+            "stopStallMs": {
+              "values": [
+                0.56,
+                0.62
+              ],
+              "p50": 0.62,
+              "max": 0.62
+            },
+            "foldMs": {
+              "values": [
+                0.29,
+                0.33
+              ],
+              "p50": 0.33,
+              "max": 0.33
+            },
+            "keepAliveMs": {
+              "values": [
+                0.14,
+                0.14
+              ],
+              "p50": 0.14,
+              "max": 0.14
+            }
+          },
+          "achievedSampleRateHz": [
+            93.04,
+            93.55
+          ],
+          "frames": {
+            "profiles": 3,
+            "samples": 189,
+            "idleSamples": 563,
+            "idleShare": 0.7487,
+            "programShare": 0.0635,
+            "gcShare": 0,
+            "anonymousLeafShare": 0.0635,
+            "nativeLeafShare": 0.709,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8028.8,
+          "work": 6240,
+          "workPerSecond": 777.2,
+          "cpuFraction": 0.3055,
+          "cpuMs": 2453,
+          "rssMb": 110.6,
+          "heapUsedMb": 35.3,
+          "eventLoopUtilization": 0.2519,
+          "eventLoopDelayMs": {
+            "p50": 15.07,
+            "p99": 25.48,
+            "max": 42.07
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8013,
+          "work": 10193,
+          "workPerSecond": 1272.05,
+          "cpuFraction": 0.2907,
+          "cpuMs": 2329,
+          "rssMb": 118,
+          "heapUsedMb": 32.8,
+          "eventLoopUtilization": 0.3982,
+          "eventLoopDelayMs": {
+            "p50": 10.44,
+            "p99": 21.36,
+            "max": 22.72
+          },
+          "windows": 2,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.1,
+                0.1
+              ],
+              "p50": 0.1,
+              "max": 0.1
+            },
+            "stopStallMs": {
+              "values": [
+                0.5,
+                0.54
+              ],
+              "p50": 0.54,
+              "max": 0.54
+            },
+            "foldMs": {
+              "values": [
+                0.21,
+                0.23
+              ],
+              "p50": 0.23,
+              "max": 0.23
+            },
+            "keepAliveMs": {
+              "values": [
+                0.14,
+                0.13
+              ],
+              "p50": 0.14,
+              "max": 0.14
+            }
+          },
+          "achievedSampleRateHz": [
+            93.35,
+            94
+          ],
+          "frames": {
+            "profiles": 3,
+            "samples": 172,
+            "idleSamples": 582,
+            "idleShare": 0.7719,
+            "programShare": 0.0581,
+            "gcShare": 0.0116,
+            "anonymousLeafShare": 0.0233,
+            "nativeLeafShare": 0.7093,
+            "droppedSampleCount": 0
+          }
+        }
+      ]
+    },
+    "nest-idle": {
+      "kind": "idle",
+      "summary": {
+        "pairs": 8,
+        "higherIsBetter": true,
+        "workPerSecond": {
+          "meanOff": 6.455,
+          "meanOn": 7.971,
+          "stdevOff": 0.022,
+          "stdevOn": 0.016,
+          "pairDeltaPercent": [
+            23.37,
+            23.18,
+            23.99,
+            23.88,
+            23.65,
+            23.76,
+            23.45,
+            22.65
+          ],
+          "meanDeltaPercent": 23.49,
+          "stdevDeltaPercent": 0.43,
+          "ci95HalfWidthPercent": 0.36,
+          "withinNoise": false
+        },
+        "cpuFraction": {
+          "meanOff": 0.001,
+          "meanOn": 0,
+          "stdevOff": 0.001,
+          "stdevOn": 0.001,
+          "pairDeltaPercent": [
+            0,
+            -100,
+            0,
+            0,
+            0,
+            -100,
+            -100,
+            0
+          ],
+          "meanDeltaPercent": -37.5,
+          "stdevDeltaPercent": 51.75,
+          "ci95HalfWidthPercent": 43.28,
+          "withinNoise": true
+        },
+        "rssMb": {
+          "meanOff": 115.513,
+          "meanOn": 122.188,
+          "stdevOff": 2.451,
+          "stdevOn": 1.849,
+          "pairDeltaPercent": [
+            7.04,
+            5.32,
+            7.15,
+            4.99,
+            5.66,
+            4.39,
+            5.31,
+            6.49
+          ],
+          "meanDeltaPercent": 5.79,
+          "stdevDeltaPercent": 1,
+          "ci95HalfWidthPercent": 0.83,
+          "withinNoise": false
+        },
+        "heapUsedMb": {
+          "meanOff": 39.15,
+          "meanOn": 39.213,
+          "stdevOff": 3.613,
+          "stdevOn": 3.749,
+          "pairDeltaPercent": [
+            1.94,
+            -1.31,
+            1.82,
+            -1.48,
+            1.46,
+            -1.17,
+            1.38,
+            -1.53
+          ],
+          "meanDeltaPercent": 0.14,
+          "stdevDeltaPercent": 1.63,
+          "ci95HalfWidthPercent": 1.36,
+          "withinNoise": true
+        },
+        "eventLoopDelayP99Ms": {
+          "meanOff": 19.374,
+          "meanOn": 15.442,
+          "stdevOff": 1.967,
+          "stdevOn": 0.449,
+          "pairDeltaPercent": [
+            -11.27,
+            -35.58,
+            -22.2,
+            -15.16,
+            -25.71,
+            -12.42,
+            -17.42,
+            -17.12
+          ],
+          "meanDeltaPercent": -19.61,
+          "stdevDeltaPercent": 8.03,
+          "ci95HalfWidthPercent": 6.71,
+          "withinNoise": false
+        },
+        "eventLoopDelayMaxMs": {
+          "meanOff": 28.77,
+          "meanOn": 16.271,
+          "stdevOff": 3.135,
+          "stdevOn": 0.396,
+          "pairDeltaPercent": [
+            -46.08,
+            -41.86,
+            -49.18,
+            -48.79,
+            -33.94,
+            -44.22,
+            -30.48,
+            -47.78
+          ],
+          "meanDeltaPercent": -42.79,
+          "stdevDeltaPercent": 7.02,
+          "ci95HalfWidthPercent": 5.87,
+          "withinNoise": false
+        },
+        "eventLoopUtilization": {
+          "meanOff": 0.003,
+          "meanOn": 0.003,
+          "stdevOff": 0,
+          "stdevOn": 0,
+          "pairDeltaPercent": [
+            32.14,
+            29.63,
+            30.77,
+            21.43,
+            41.67,
+            29.63,
+            30.77,
+            44
+          ],
+          "meanDeltaPercent": 32.5,
+          "stdevDeltaPercent": 7.19,
+          "ci95HalfWidthPercent": 6.01,
+          "withinNoise": false
+        }
+      },
+      "stallSeriesAllOnRuns": {
+        "startStallMs": {
+          "values": [
+            0.1,
+            0.1,
+            0.09,
+            0.09,
+            0.09,
+            0.1,
+            0.1,
+            0.09,
+            0.09,
+            0.09,
+            0.1,
+            0.1,
+            0.09,
+            0.09
+          ],
+          "p50": 0.09,
+          "max": 0.1
+        },
+        "stopStallMs": {
+          "values": [
+            0.39,
+            0.41,
+            0.34,
+            0.4,
+            0.34,
+            0.4,
+            0.45,
+            0.37,
+            0.44,
+            0.41,
+            0.41,
+            0.41,
+            0.38,
+            0.43
+          ],
+          "p50": 0.41,
+          "max": 0.45
+        },
+        "foldMs": {
+          "values": [
+            0.13,
+            0.14,
+            0.12,
+            0.12,
+            0.17,
+            0.12,
+            0.21,
+            0.12,
+            0.19,
+            0.14,
+            0.13,
+            0.12,
+            0.16,
+            0.12
+          ],
+          "p50": 0.13,
+          "max": 0.21
+        },
+        "keepAliveMs": {
+          "values": [
+            0.14,
+            0.13,
+            0.13,
+            0.13,
+            0.13,
+            0.14,
+            0.14,
+            0.14,
+            0.13,
+            0.14,
+            0.15,
+            0.15,
+            0.13,
+            0.15
+          ],
+          "p50": 0.14,
+          "max": 0.15
+        }
+      },
+      "runs": [
+        {
+          "mode": "off",
+          "wallMs": 8045.7,
+          "work": 52,
+          "workPerSecond": 6.46,
+          "cpuFraction": 0,
+          "cpuMs": 0,
+          "rssMb": 112.2,
+          "heapUsedMb": 36.1,
+          "eventLoopUtilization": 0.0028,
+          "eventLoopDelayMs": {
+            "p50": 15.61,
+            "p99": 18.01,
+            "max": 29.84
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8025.2,
+          "work": 64,
+          "workPerSecond": 7.97,
+          "cpuFraction": 0,
+          "cpuMs": 0,
+          "rssMb": 120.1,
+          "heapUsedMb": 36.8,
+          "eventLoopUtilization": 0.0037,
+          "eventLoopDelayMs": {
+            "p50": 10.52,
+            "p99": 15.98,
+            "max": 16.09
+          },
+          "windows": 2,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.1,
+                0.1
+              ],
+              "p50": 0.1,
+              "max": 0.1
+            },
+            "stopStallMs": {
+              "values": [
+                0.39,
+                0.41
+              ],
+              "p50": 0.41,
+              "max": 0.41
+            },
+            "foldMs": {
+              "values": [
+                0.13,
+                0.14
+              ],
+              "p50": 0.14,
+              "max": 0.14
+            },
+            "keepAliveMs": {
+              "values": [
+                0.14,
+                0.13
+              ],
+              "p50": 0.14,
+              "max": 0.14
+            }
+          },
+          "achievedSampleRateHz": [
+            93.43,
+            92.75
+          ],
+          "frames": {
+            "profiles": 3,
+            "samples": 14,
+            "idleSamples": 737,
+            "idleShare": 0.9814,
+            "programShare": 0.5,
+            "gcShare": 0,
+            "anonymousLeafShare": 0,
+            "nativeLeafShare": 0.2857,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8036.9,
+          "work": 52,
+          "workPerSecond": 6.47,
+          "cpuFraction": 0.002,
+          "cpuMs": 16,
+          "rssMb": 114.6,
+          "heapUsedMb": 38.1,
+          "eventLoopUtilization": 0.0027,
+          "eventLoopDelayMs": {
+            "p50": 15.67,
+            "p99": 23.72,
+            "max": 27.57
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8026.4,
+          "work": 64,
+          "workPerSecond": 7.97,
+          "cpuFraction": 0,
+          "cpuMs": 0,
+          "rssMb": 120.7,
+          "heapUsedMb": 37.6,
+          "eventLoopUtilization": 0.0035,
+          "eventLoopDelayMs": {
+            "p50": 10.52,
+            "p99": 15.28,
+            "max": 16.03
+          },
+          "windows": 2,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.09,
+                0.09
+              ],
+              "p50": 0.09,
+              "max": 0.09
+            },
+            "stopStallMs": {
+              "values": [
+                0.34,
+                0.4
+              ],
+              "p50": 0.4,
+              "max": 0.4
+            },
+            "foldMs": {
+              "values": [
+                0.12,
+                0.12
+              ],
+              "p50": 0.12,
+              "max": 0.12
+            },
+            "keepAliveMs": {
+              "values": [
+                0.13,
+                0.13
+              ],
+              "p50": 0.13,
+              "max": 0.13
+            }
+          },
+          "achievedSampleRateHz": [
+            92.66,
+            92.87
+          ],
+          "frames": {
+            "profiles": 3,
+            "samples": 20,
+            "idleSamples": 728,
+            "idleShare": 0.9733,
+            "programShare": 0.8,
+            "gcShare": 0,
+            "anonymousLeafShare": 0,
+            "nativeLeafShare": 0.15,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8094.9,
+          "work": 52,
+          "workPerSecond": 6.42,
+          "cpuFraction": 0,
+          "cpuMs": 0,
+          "rssMb": 114.7,
+          "heapUsedMb": 38.5,
+          "eventLoopUtilization": 0.0026,
+          "eventLoopDelayMs": {
+            "p50": 15.65,
+            "p99": 19.37,
+            "max": 31.6
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8038.7,
+          "work": 64,
+          "workPerSecond": 7.96,
+          "cpuFraction": 0,
+          "cpuMs": 0,
+          "rssMb": 122.9,
+          "heapUsedMb": 39.2,
+          "eventLoopUtilization": 0.0034,
+          "eventLoopDelayMs": {
+            "p50": 10.52,
+            "p99": 15.07,
+            "max": 16.06
+          },
+          "windows": 2,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.09,
+                0.1
+              ],
+              "p50": 0.1,
+              "max": 0.1
+            },
+            "stopStallMs": {
+              "values": [
+                0.34,
+                0.4
+              ],
+              "p50": 0.4,
+              "max": 0.4
+            },
+            "foldMs": {
+              "values": [
+                0.17,
+                0.12
+              ],
+              "p50": 0.17,
+              "max": 0.17
+            },
+            "keepAliveMs": {
+              "values": [
+                0.13,
+                0.14
+              ],
+              "p50": 0.14,
+              "max": 0.14
+            }
+          },
+          "achievedSampleRateHz": [
+            93.26,
+            93.57
+          ],
+          "frames": {
+            "profiles": 3,
+            "samples": 16,
+            "idleSamples": 739,
+            "idleShare": 0.9788,
+            "programShare": 0.75,
+            "gcShare": 0,
+            "anonymousLeafShare": 0,
+            "nativeLeafShare": 0.1875,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8058.8,
+          "work": 52,
+          "workPerSecond": 6.45,
+          "cpuFraction": 0,
+          "cpuMs": 0,
+          "rssMb": 116.3,
+          "heapUsedMb": 40.6,
+          "eventLoopUtilization": 0.0028,
+          "eventLoopDelayMs": {
+            "p50": 15.65,
+            "p99": 17.74,
+            "max": 31.36
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8006.3,
+          "work": 64,
+          "workPerSecond": 7.99,
+          "cpuFraction": 0,
+          "cpuMs": 0,
+          "rssMb": 122.1,
+          "heapUsedMb": 40,
+          "eventLoopUtilization": 0.0034,
+          "eventLoopDelayMs": {
+            "p50": 10.54,
+            "p99": 15.05,
+            "max": 16.06
+          },
+          "windows": 1,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.1
+              ],
+              "p50": 0.1,
+              "max": 0.1
+            },
+            "stopStallMs": {
+              "values": [
+                0.45
+              ],
+              "p50": 0.45,
+              "max": 0.45
+            },
+            "foldMs": {
+              "values": [
+                0.21
+              ],
+              "p50": 0.21,
+              "max": 0.21
+            },
+            "keepAliveMs": {
+              "values": [
+                0.14
+              ],
+              "p50": 0.14,
+              "max": 0.14
+            }
+          },
+          "achievedSampleRateHz": [
+            92.41
+          ],
+          "frames": {
+            "profiles": 3,
+            "samples": 17,
+            "idleSamples": 731,
+            "idleShare": 0.9773,
+            "programShare": 0.5294,
+            "gcShare": 0,
+            "anonymousLeafShare": 0,
+            "nativeLeafShare": 0.1765,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8034.1,
+          "work": 52,
+          "workPerSecond": 6.47,
+          "cpuFraction": 0,
+          "cpuMs": 0,
+          "rssMb": 116.7,
+          "heapUsedMb": 41,
+          "eventLoopUtilization": 0.0024,
+          "eventLoopDelayMs": {
+            "p50": 15.65,
+            "p99": 20.38,
+            "max": 24.31
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8001.6,
+          "work": 64,
+          "workPerSecond": 8,
+          "cpuFraction": 0.002,
+          "cpuMs": 16,
+          "rssMb": 123.3,
+          "heapUsedMb": 41.6,
+          "eventLoopUtilization": 0.0034,
+          "eventLoopDelayMs": {
+            "p50": 10.52,
+            "p99": 15.14,
+            "max": 16.06
+          },
+          "windows": 1,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.09
+              ],
+              "p50": 0.09,
+              "max": 0.09
+            },
+            "stopStallMs": {
+              "values": [
+                0.37
+              ],
+              "p50": 0.37,
+              "max": 0.37
+            },
+            "foldMs": {
+              "values": [
+                0.12
+              ],
+              "p50": 0.12,
+              "max": 0.12
+            },
+            "keepAliveMs": {
+              "values": [
+                0.14
+              ],
+              "p50": 0.14,
+              "max": 0.14
+            }
+          },
+          "achievedSampleRateHz": [
+            92.62
+          ],
+          "frames": {
+            "profiles": 2,
+            "samples": 15,
+            "idleSamples": 728,
+            "idleShare": 0.9798,
+            "programShare": 0.6667,
+            "gcShare": 0,
+            "anonymousLeafShare": 0,
+            "nativeLeafShare": 0.1333,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8069.7,
+          "work": 52,
+          "workPerSecond": 6.44,
+          "cpuFraction": 0.0019,
+          "cpuMs": 15,
+          "rssMb": 118.4,
+          "heapUsedMb": 42.9,
+          "eventLoopUtilization": 0.0027,
+          "eventLoopDelayMs": {
+            "p50": 15.7,
+            "p99": 18.19,
+            "max": 30.69
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8034.5,
+          "work": 64,
+          "workPerSecond": 7.97,
+          "cpuFraction": 0,
+          "cpuMs": 0,
+          "rssMb": 123.6,
+          "heapUsedMb": 42.4,
+          "eventLoopUtilization": 0.0035,
+          "eventLoopDelayMs": {
+            "p50": 10.95,
+            "p99": 15.93,
+            "max": 17.12
+          },
+          "windows": 2,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.09,
+                0.09
+              ],
+              "p50": 0.09,
+              "max": 0.09
+            },
+            "stopStallMs": {
+              "values": [
+                0.44,
+                0.41
+              ],
+              "p50": 0.44,
+              "max": 0.44
+            },
+            "foldMs": {
+              "values": [
+                0.19,
+                0.14
+              ],
+              "p50": 0.19,
+              "max": 0.19
+            },
+            "keepAliveMs": {
+              "values": [
+                0.13,
+                0.14
+              ],
+              "p50": 0.14,
+              "max": 0.14
+            }
+          },
+          "achievedSampleRateHz": [
+            91.62,
+            92.06
+          ],
+          "frames": {
+            "profiles": 3,
+            "samples": 25,
+            "idleSamples": 717,
+            "idleShare": 0.9663,
+            "programShare": 0.68,
+            "gcShare": 0,
+            "anonymousLeafShare": 0,
+            "nativeLeafShare": 0.12,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8070.1,
+          "work": 52,
+          "workPerSecond": 6.44,
+          "cpuFraction": 0.002,
+          "cpuMs": 16,
+          "rssMb": 118.7,
+          "heapUsedMb": 43.4,
+          "eventLoopUtilization": 0.0026,
+          "eventLoopDelayMs": {
+            "p50": 15.63,
+            "p99": 18.25,
+            "max": 23.92
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8050.7,
+          "work": 64,
+          "workPerSecond": 7.95,
+          "cpuFraction": 0,
+          "cpuMs": 0,
+          "rssMb": 125,
+          "heapUsedMb": 44,
+          "eventLoopUtilization": 0.0034,
+          "eventLoopDelayMs": {
+            "p50": 10.52,
+            "p99": 15.07,
+            "max": 16.63
+          },
+          "windows": 2,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.1,
+                0.1
+              ],
+              "p50": 0.1,
+              "max": 0.1
+            },
+            "stopStallMs": {
+              "values": [
+                0.41,
+                0.41
+              ],
+              "p50": 0.41,
+              "max": 0.41
+            },
+            "foldMs": {
+              "values": [
+                0.13,
+                0.12
+              ],
+              "p50": 0.13,
+              "max": 0.13
+            },
+            "keepAliveMs": {
+              "values": [
+                0.15,
+                0.15
+              ],
+              "p50": 0.15,
+              "max": 0.15
+            }
+          },
+          "achievedSampleRateHz": [
+            92.99,
+            93.35
+          ],
+          "frames": {
+            "profiles": 3,
+            "samples": 12,
+            "idleSamples": 742,
+            "idleShare": 0.9841,
+            "programShare": 0.5,
+            "gcShare": 0,
+            "anonymousLeafShare": 0,
+            "nativeLeafShare": 0.25,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "off",
+          "wallMs": 8017.7,
+          "work": 52,
+          "workPerSecond": 6.49,
+          "cpuFraction": 0,
+          "cpuMs": 0,
+          "rssMb": 112.5,
+          "heapUsedMb": 32.6,
+          "eventLoopUtilization": 0.0025,
+          "eventLoopDelayMs": {
+            "p50": 15.66,
+            "p99": 19.33,
+            "max": 30.87
+          },
+          "windows": 0
+        },
+        {
+          "mode": "on",
+          "wallMs": 8041.5,
+          "work": 64,
+          "workPerSecond": 7.96,
+          "cpuFraction": 0,
+          "cpuMs": 0,
+          "rssMb": 119.8,
+          "heapUsedMb": 32.1,
+          "eventLoopUtilization": 0.0036,
+          "eventLoopDelayMs": {
+            "p50": 10.52,
+            "p99": 16.02,
+            "max": 16.12
+          },
+          "windows": 2,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.09,
+                0.09
+              ],
+              "p50": 0.09,
+              "max": 0.09
+            },
+            "stopStallMs": {
+              "values": [
+                0.38,
+                0.43
+              ],
+              "p50": 0.43,
+              "max": 0.43
+            },
+            "foldMs": {
+              "values": [
+                0.16,
+                0.12
+              ],
+              "p50": 0.16,
+              "max": 0.16
+            },
+            "keepAliveMs": {
+              "values": [
+                0.13,
+                0.15
+              ],
+              "p50": 0.15,
+              "max": 0.15
+            }
+          },
+          "achievedSampleRateHz": [
+            92.96,
+            93.08
+          ],
+          "frames": {
+            "profiles": 3,
+            "samples": 19,
+            "idleSamples": 733,
+            "idleShare": 0.9747,
+            "programShare": 0.6842,
+            "gcShare": 0,
+            "anonymousLeafShare": 0,
+            "nativeLeafShare": 0.1579,
+            "droppedSampleCount": 0
+          }
+        }
+      ]
+    }
+  },
+  "largeHeap": {
+    "retainedHeapUsedMb": 314.3,
+    "runs": {
+      "off": [
+        {
+          "mode": "off",
+          "wallMs": 8000.2,
+          "work": 73340,
+          "workPerSecond": 9167.31,
+          "cpuFraction": 0.961,
+          "cpuMs": 7688,
+          "rssMb": 402.3,
+          "heapUsedMb": 320.7,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 5.02,
+            "p99": 6.14,
+            "max": 33.46
+          },
+          "windows": 0
+        },
+        {
+          "mode": "off",
+          "wallMs": 8000.5,
+          "work": 67175,
+          "workPerSecond": 8396.4,
+          "cpuFraction": 0.8106,
+          "cpuMs": 6485,
+          "rssMb": 405.3,
+          "heapUsedMb": 318.8,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 5.01,
+            "p99": 18.42,
+            "max": 31.05
+          },
+          "windows": 0
+        },
+        {
+          "mode": "off",
+          "wallMs": 8000.4,
+          "work": 73275,
+          "workPerSecond": 9158.88,
+          "cpuFraction": 0.9453,
+          "cpuMs": 7563,
+          "rssMb": 406.7,
+          "heapUsedMb": 316.1,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 5.01,
+            "p99": 5.89,
+            "max": 14.43
+          },
+          "windows": 0
+        },
+        {
+          "mode": "off",
+          "wallMs": 8000.1,
+          "work": 74035,
+          "workPerSecond": 9254.27,
+          "cpuFraction": 0.9589,
+          "cpuMs": 7671,
+          "rssMb": 407.8,
+          "heapUsedMb": 325.8,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 5.01,
+            "p99": 5.94,
+            "max": 13.59
+          },
+          "windows": 0
+        }
+      ],
+      "keepAliveOn": [
+        {
+          "mode": "on",
+          "wallMs": 8000.1,
+          "work": 80845,
+          "workPerSecond": 10105.46,
+          "cpuFraction": 1,
+          "cpuMs": 8000,
+          "rssMb": 408.6,
+          "heapUsedMb": 322.2,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 4.98,
+            "p99": 5.54,
+            "max": 9.05
+          },
+          "windows": 1,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.18
+              ],
+              "p50": 0.18,
+              "max": 0.18
+            },
+            "stopStallMs": {
+              "values": [
+                1.59
+              ],
+              "p50": 1.59,
+              "max": 1.59
+            },
+            "foldMs": {
+              "values": [
+                1.85
+              ],
+              "p50": 1.85,
+              "max": 1.85
+            },
+            "keepAliveMs": {
+              "values": [
+                0.21
+              ],
+              "p50": 0.21,
+              "max": 0.21
+            }
+          },
+          "achievedSampleRateHz": [
+            93.12
+          ],
+          "frames": {
+            "profiles": 2,
+            "samples": 739,
+            "idleSamples": 9,
+            "idleShare": 0.012,
+            "programShare": 0.6157,
+            "gcShare": 0.0041,
+            "anonymousLeafShare": 0,
+            "nativeLeafShare": 0.0054,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "on",
+          "wallMs": 8001.5,
+          "work": 81415,
+          "workPerSecond": 10174.95,
+          "cpuFraction": 0.9938,
+          "cpuMs": 7952,
+          "rssMb": 410.1,
+          "heapUsedMb": 315.4,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 5,
+            "p99": 5.5,
+            "max": 7.78
+          },
+          "windows": 1,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.31
+              ],
+              "p50": 0.31,
+              "max": 0.31
+            },
+            "stopStallMs": {
+              "values": [
+                1.27
+              ],
+              "p50": 1.27,
+              "max": 1.27
+            },
+            "foldMs": {
+              "values": [
+                1.56
+              ],
+              "p50": 1.56,
+              "max": 1.56
+            },
+            "keepAliveMs": {
+              "values": [
+                0.3
+              ],
+              "p50": 0.3,
+              "max": 0.3
+            }
+          },
+          "achievedSampleRateHz": [
+            93.71
+          ],
+          "frames": {
+            "profiles": 3,
+            "samples": 742,
+            "idleSamples": 8,
+            "idleShare": 0.0107,
+            "programShare": 0.5997,
+            "gcShare": 0.004,
+            "anonymousLeafShare": 0,
+            "nativeLeafShare": 0.0094,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "on",
+          "wallMs": 8001.9,
+          "work": 80555,
+          "workPerSecond": 10067.04,
+          "cpuFraction": 0.9958,
+          "cpuMs": 7968,
+          "rssMb": 410.9,
+          "heapUsedMb": 314.1,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 4.99,
+            "p99": 5.53,
+            "max": 7.93
+          },
+          "windows": 1,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.11
+              ],
+              "p50": 0.11,
+              "max": 0.11
+            },
+            "stopStallMs": {
+              "values": [
+                1.26
+              ],
+              "p50": 1.26,
+              "max": 1.26
+            },
+            "foldMs": {
+              "values": [
+                1.56
+              ],
+              "p50": 1.56,
+              "max": 1.56
+            },
+            "keepAliveMs": {
+              "values": [
+                0.15
+              ],
+              "p50": 0.15,
+              "max": 0.15
+            }
+          },
+          "achievedSampleRateHz": [
+            93.56
+          ],
+          "frames": {
+            "profiles": 3,
+            "samples": 744,
+            "idleSamples": 9,
+            "idleShare": 0.012,
+            "programShare": 0.6102,
+            "gcShare": 0.0054,
+            "anonymousLeafShare": 0,
+            "nativeLeafShare": 0.0108,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "on",
+          "wallMs": 8000.4,
+          "work": 81185,
+          "workPerSecond": 10147.65,
+          "cpuFraction": 1.002,
+          "cpuMs": 8016,
+          "rssMb": 412.5,
+          "heapUsedMb": 319,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 5,
+            "p99": 5.55,
+            "max": 5.98
+          },
+          "windows": 1,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                0.12
+              ],
+              "p50": 0.12,
+              "max": 0.12
+            },
+            "stopStallMs": {
+              "values": [
+                1.24
+              ],
+              "p50": 1.24,
+              "max": 1.24
+            },
+            "foldMs": {
+              "values": [
+                1.37
+              ],
+              "p50": 1.37,
+              "max": 1.37
+            },
+            "keepAliveMs": {
+              "values": [
+                0.17
+              ],
+              "p50": 0.17,
+              "max": 0.17
+            }
+          },
+          "achievedSampleRateHz": [
+            93.31
+          ],
+          "frames": {
+            "profiles": 2,
+            "samples": 738,
+            "idleSamples": 9,
+            "idleShare": 0.012,
+            "programShare": 0.5867,
+            "gcShare": 0.0068,
+            "anonymousLeafShare": 0.0014,
+            "nativeLeafShare": 0.0068,
+            "droppedSampleCount": 0
+          }
+        }
+      ],
+      "keepAliveOff": [
+        {
+          "mode": "on",
+          "wallMs": 8000.1,
+          "work": 74950,
+          "workPerSecond": 9368.63,
+          "cpuFraction": 0.9941,
+          "cpuMs": 7953,
+          "rssMb": 409.4,
+          "heapUsedMb": 322.2,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 4.99,
+            "p99": 5.51,
+            "max": 710.41
+          },
+          "windows": 1,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                679.25
+              ],
+              "p50": 679.25,
+              "max": 679.25
+            },
+            "stopStallMs": {
+              "values": [
+                24.06
+              ],
+              "p50": 24.06,
+              "max": 24.06
+            },
+            "foldMs": {
+              "values": [
+                2.17
+              ],
+              "p50": 2.17,
+              "max": 2.17
+            },
+            "keepAliveMs": {
+              "values": [
+                0
+              ],
+              "p50": 0,
+              "max": 0
+            }
+          },
+          "achievedSampleRateHz": [
+            93.79
+          ],
+          "frames": {
+            "profiles": 2,
+            "samples": 677,
+            "idleSamples": 11,
+            "idleShare": 0.016,
+            "programShare": 0.5731,
+            "gcShare": 0.0074,
+            "anonymousLeafShare": 0.0015,
+            "nativeLeafShare": 0.0089,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "on",
+          "wallMs": 8000.1,
+          "work": 73900,
+          "workPerSecond": 9237.4,
+          "cpuFraction": 0.9942,
+          "cpuMs": 7954,
+          "rssMb": 410.5,
+          "heapUsedMb": 314,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 4.99,
+            "p99": 5.54,
+            "max": 717.23
+          },
+          "windows": 1,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                691.63
+              ],
+              "p50": 691.63,
+              "max": 691.63
+            },
+            "stopStallMs": {
+              "values": [
+                19.04
+              ],
+              "p50": 19.04,
+              "max": 19.04
+            },
+            "foldMs": {
+              "values": [
+                1.58
+              ],
+              "p50": 1.58,
+              "max": 1.58
+            },
+            "keepAliveMs": {
+              "values": [
+                0
+              ],
+              "p50": 0,
+              "max": 0
+            }
+          },
+          "achievedSampleRateHz": [
+            93.46
+          ],
+          "frames": {
+            "profiles": 2,
+            "samples": 674,
+            "idleSamples": 10,
+            "idleShare": 0.0146,
+            "programShare": 0.5623,
+            "gcShare": 0.0074,
+            "anonymousLeafShare": 0,
+            "nativeLeafShare": 0.0045,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "on",
+          "wallMs": 8000.3,
+          "work": 73020,
+          "workPerSecond": 9127.18,
+          "cpuFraction": 0.9882,
+          "cpuMs": 7906,
+          "rssMb": 411.7,
+          "heapUsedMb": 326.5,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 4.99,
+            "p99": 5.51,
+            "max": 728.76
+          },
+          "windows": 1,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                699.29
+              ],
+              "p50": 699.29,
+              "max": 699.29
+            },
+            "stopStallMs": {
+              "values": [
+                23.55
+              ],
+              "p50": 23.55,
+              "max": 23.55
+            },
+            "foldMs": {
+              "values": [
+                1.61
+              ],
+              "p50": 1.61,
+              "max": 1.61
+            },
+            "keepAliveMs": {
+              "values": [
+                0
+              ],
+              "p50": 0,
+              "max": 0
+            }
+          },
+          "achievedSampleRateHz": [
+            93.33
+          ],
+          "frames": {
+            "profiles": 2,
+            "samples": 669,
+            "idleSamples": 12,
+            "idleShare": 0.0176,
+            "programShare": 0.6069,
+            "gcShare": 0.003,
+            "anonymousLeafShare": 0,
+            "nativeLeafShare": 0.0075,
+            "droppedSampleCount": 0
+          }
+        },
+        {
+          "mode": "on",
+          "wallMs": 8000.1,
+          "work": 73670,
+          "workPerSecond": 9208.63,
+          "cpuFraction": 0.994,
+          "cpuMs": 7952,
+          "rssMb": 413,
+          "heapUsedMb": 314.2,
+          "eventLoopUtilization": 1,
+          "eventLoopDelayMs": {
+            "p50": 4.99,
+            "p99": 5.48,
+            "max": 729.81
+          },
+          "windows": 1,
+          "stalls": {
+            "startStallMs": {
+              "values": [
+                702.1
+              ],
+              "p50": 702.1,
+              "max": 702.1
+            },
+            "stopStallMs": {
+              "values": [
+                20.2
+              ],
+              "p50": 20.2,
+              "max": 20.2
+            },
+            "foldMs": {
+              "values": [
+                1.45
+              ],
+              "p50": 1.45,
+              "max": 1.45
+            },
+            "keepAliveMs": {
+              "values": [
+                0
+              ],
+              "p50": 0,
+              "max": 0
+            }
+          },
+          "achievedSampleRateHz": [
+            93.25
+          ],
+          "frames": {
+            "profiles": 2,
+            "samples": 679,
+            "idleSamples": 6,
+            "idleShare": 0.0088,
+            "programShare": 0.5862,
+            "gcShare": 0.0074,
+            "anonymousLeafShare": 0,
+            "nativeLeafShare": 0.0088,
+            "droppedSampleCount": 0
+          }
+        }
+      ]
+    },
+    "stallSeries": {
+      "keepAliveOn": {
+        "startStallMs": {
+          "values": [
+            0.18,
+            0.31,
+            0.11,
+            0.12
+          ],
+          "p50": 0.18,
+          "max": 0.31
+        },
+        "stopStallMs": {
+          "values": [
+            1.59,
+            1.27,
+            1.26,
+            1.24
+          ],
+          "p50": 1.27,
+          "max": 1.59
+        },
+        "keepAliveMs": {
+          "values": [
+            0.21,
+            0.3,
+            0.15,
+            0.17
+          ],
+          "p50": 0.21,
+          "max": 0.3
+        }
+      },
+      "keepAliveOff": {
+        "startStallMs": {
+          "values": [
+            679.25,
+            691.63,
+            699.29,
+            702.1
+          ],
+          "p50": 699.29,
+          "max": 702.1
+        },
+        "stopStallMs": {
+          "values": [
+            24.06,
+            19.04,
+            23.55,
+            20.2
+          ],
+          "p50": 23.55,
+          "max": 24.06
+        }
+      }
+    },
+    "eventLoopDelayMaxMs": {
+      "off": [
+        33.46,
+        31.05,
+        14.43,
+        13.59
+      ],
+      "keepAliveOn": [
+        9.05,
+        7.78,
+        7.93,
+        5.98
+      ],
+      "keepAliveOff": [
+        710.41,
+        717.23,
+        728.76,
+        729.81
+      ]
+    },
+    "workPerSecond": {
+      "off": [
+        9167.31,
+        8396.4,
+        9158.88,
+        9254.27
+      ],
+      "keepAliveOn": [
+        10105.46,
+        10174.95,
+        10067.04,
+        10147.65
+      ],
+      "keepAliveOff": [
+        9368.63,
+        9237.4,
+        9127.18,
+        9208.63
+      ]
+    }
+  }
+}

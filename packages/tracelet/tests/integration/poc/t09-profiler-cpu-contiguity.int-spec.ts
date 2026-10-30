@@ -7,6 +7,8 @@ import { ContinuousProfiler } from '../../../src/profiling/index.js';
 import { generateCodeHeavy } from '../../support/profiling/generate-code-heavy.js';
 import type { GeneratedCodeHeavy } from '../../support/profiling/generate-code-heavy.js';
 import { absolutePathViolations, continuity, runMixedLoad, stallSeries, summarizeSeries } from '../../support/profiling/load.js';
+import { contentionPreflight, windowDiagnostics } from '../../support/profiling/contention-gate.js';
+import { skipIfBusyWait } from '../../support/profiling/runtime-gate.js';
 
 /* T09 (plan 16): 30 s CPU-bound + concurrent allocation-heavy loop on the code-heavy fixture, windowMs 5000, 99 Hz. */
 
@@ -26,7 +28,10 @@ describe('T09 profiler contiguity under CPU load (code-heavy fixture)', () => {
     }
   });
 
-  it('keeps sampling contiguous: sample-based gaps <= 250 ms, coverage >= 0.95, burnCpu in every window, state never disabled/error', async () => {
+  it('keeps sampling contiguous: sample-based gaps <= 250 ms, coverage >= 0.95, burnCpu in every window, state never disabled/error', async (ctx) => {
+    skipIfBusyWait(ctx);
+    const outFile = resolve(process.cwd(), '../../artifacts/02_t09_run.json');
+    const gate = await contentionPreflight(ctx, 'T09', outFile);
     expect(fixture.module.functionCount).toBeGreaterThanOrEqual(10_000);
 
     const queue = new BoundedTelemetryQueue({ maxQueuedProfiles: 50 });
@@ -49,24 +54,26 @@ describe('T09 profiler contiguity under CPU load (code-heavy fixture)', () => {
     await profiler.stop();
     clearInterval(watch);
     const wallMs = Date.now() - t0;
+    const post = await gate.after();
 
     const debug = profiler.debug();
     const windows = debug.windows;
     const rotated = windows.filter((w) => !w.final);
-    expect(rotated.length).toBeGreaterThanOrEqual(6);
+    expect(rotated.length, post.diag({ windows: windowDiagnostics(windows) })).toBeGreaterThanOrEqual(6);
 
     const c = continuity(windows, MAX_GAP_MS);
     const series = stallSeries(windows);
     const items = queue.drain(1000, Number.MAX_SAFE_INTEGER).filter((i): i is ProfileItem => i.type === 'profile');
 
     // saved log for artifacts/02_POC_RESULTS.md
-    const out = resolve(process.cwd(), '../../artifacts/02_t09_run.json');
+    const out = outFile;
     mkdirSync(dirname(out), { recursive: true });
     writeFileSync(
       out,
       JSON.stringify(
         {
           node: process.version,
+          contention: { before: gate.before, after: post.reading },
           wallMs,
           functionCount: fixture.module.functionCount,
           states: [...states],
@@ -92,10 +99,11 @@ describe('T09 profiler contiguity under CPU load (code-heavy fixture)', () => {
     );
 
     // gap-bearing windows: every window except the first
-    expect(c.withGap).toBeGreaterThanOrEqual(5);
-    expect(c.contiguous, `gaps ${JSON.stringify(c.gaps)}`).toBeGreaterThanOrEqual(5);
-    expect(c.coverage, JSON.stringify(c)).toBeGreaterThanOrEqual(0.95);
-    for (const w of windows) expect(w.sampleCount, `window ${w.seq}`).toBeGreaterThan(0);
+    const diag = post.diag({ continuity: c, windows: windowDiagnostics(windows) });
+    expect(c.withGap, diag).toBeGreaterThanOrEqual(5);
+    expect(c.contiguous, `gaps ${JSON.stringify(c.gaps)} (max ${MAX_GAP_MS}); ${diag}`).toBeGreaterThanOrEqual(5);
+    expect(c.coverage, `coverage ${c.coverage} (min 0.95); ${diag}`).toBeGreaterThanOrEqual(0.95);
+    for (const w of windows) expect(w.sampleCount, `window ${w.seq}; ${diag}`).toBeGreaterThan(0);
     expect(items.length).toBe(windows.length);
     for (const item of items) {
       expect(item.profile.sampleCount).toBeGreaterThan(0);

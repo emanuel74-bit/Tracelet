@@ -9,6 +9,7 @@ import type { ProfilerDebug } from '../../src/profiling/index.js';
 import { generateCodeHeavy } from '../../tests/support/profiling/generate-code-heavy.js';
 import type { CodeHeavyModule } from '../../tests/support/profiling/generate-code-heavy.js';
 import { stallSeries, summarizeSeries } from '../../tests/support/profiling/load.js';
+import { skipIfBusyWait } from '../../tests/support/profiling/runtime-gate.js';
 
 /* T20 seed / R5: fixed CPU work units with the sampler off vs on, on the code-heavy fixture. No pass/fail threshold. */
 
@@ -63,7 +64,8 @@ async function runMode(mod: CodeHeavyModule, sampler: boolean) {
 }
 
 describe('T20 seed: CPU sampler overhead', () => {
-  it('measures throughput, ELU, event-loop delay and the stall series, sampler off vs on, and writes artifacts/02_bench_profiler.json', async () => {
+  it('measures throughput, ELU, event-loop delay and the stall series, sampler off vs on, and writes artifacts/02_bench_profiler.json', async (ctx) => {
+    skipIfBusyWait(ctx); // CR-002: first statement, before the fixture is generated and before anything is written
     const fixture = generateCodeHeavy(12_000);
     try {
       await runMode(fixture.module, false); // warm-up (JIT), discarded

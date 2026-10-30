@@ -46,5 +46,5 @@ describe('global slot ABI gate (shared/als.ts, plan 3.4)', () => {
     const inst = await import('../../../src/instrumentation/index.js');
     const obj = { m: () => 1 };
     expect(inst.createTraceletInstrument({ enabled: true })!.instanceDecorator(obj)).toBe(obj);
-  });
+  }, 30_000); // Flake fix, not a performance assertion: re-evaluating src/** after vi.resetModules() takes 1.4 s alone and exceeded the 5 s default under CPU contention from parallel test files (observed: Test timed out in 5000ms).
 });

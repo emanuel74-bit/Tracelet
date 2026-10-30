@@ -4,6 +4,7 @@ import { afterAll, describe, expect, it } from 'vitest';
 import { BoundedTelemetryQueue } from '../../../src/buffer/index.js';
 import { ContinuousProfiler } from '../../../src/profiling/index.js';
 import { sleep, stallSeries, summarizeSeries } from '../../support/profiling/load.js';
+import { skipIfBusyWait } from '../../support/profiling/runtime-gate.js';
 
 /**
  * M3 regression: with ~150 MB of retained heap a plain Profiler.stop/start re-creates the V8 CpuProfiler and re-walks the heap
@@ -40,7 +41,8 @@ async function rotations(opts: { keepAlive: boolean }) {
 }
 
 describe('rotation keep-alive on a large heap (M3)', () => {
-  it('keeps the start stall tiny with ~150 MB retained (3 rotations)', async () => {
+  it('keeps the start stall tiny with ~150 MB retained (3 rotations)', async (ctx) => {
+    skipIfBusyWait(ctx);
     const heapMb = retainHeap(150);
     expect(heapMb).toBeGreaterThanOrEqual(150);
     const { debug, series } = await rotations({ keepAlive: true });
@@ -52,7 +54,8 @@ describe('rotation keep-alive on a large heap (M3)', () => {
     writeFileSync(out, JSON.stringify({ node: process.version, heapUsedMb: Math.round(heapMb), keepAlive: summarize(series) }, null, 2));
   }, 120_000);
 
-  it('records (no bound) the stall with the keep-alive opted out', async () => {
+  it('records (no bound) the stall with the keep-alive opted out', async (ctx) => {
+    skipIfBusyWait(ctx);
     const heapMb = retainHeap(150);
     const { debug, series } = await rotations({ keepAlive: false });
     expect(debug.keepAlive).toBe('off');

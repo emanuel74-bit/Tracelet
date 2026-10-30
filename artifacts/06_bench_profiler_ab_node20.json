@@ -1,0 +1,8 @@
+{
+  "generatedAt": "2026-10-29T22:12:51.140Z",
+  "node": "v20.19.5",
+  "platform": "win32 x64",
+  "status": "unavailable",
+  "reason": "on Windows the V8 CPU sampler thread busy-waits about one core between samples at sampleRateHz 99 (V8 11.3.244.8-node.30 predates its precise sleep timer); use Node >= 22 on Windows 10 1803+, or sampleRateHz <= 9",
+  "note": "NOT RUN: the profiler reports state unavailable at the default rate on this runtime (CR-002); no overhead is claimed."
+}
