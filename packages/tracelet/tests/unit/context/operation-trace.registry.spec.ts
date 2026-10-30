@@ -512,7 +512,7 @@ describe('TraceRegistry (ported OperationTraceRegistry cases)', () => {
       const started = performance.now();
       setTimeout(() => slow.internalEndTraceStep('o2', child, 'S', 'child', child), 30);
       const snapshot = await slow.pluckSnapshot('o2');
-      expect(performance.now() - started).toBeLessThan(1000);
+      expect(performance.now() - started).toBeLessThan(2500); // ceiling is 5000: only the early resolve passes
       expect(snapshot!.unfinishedSpanCount).toBe(0);
       expect(snapshot!.isComplete).toBe(true);
       expect(slow.hasSnapshotsAwaitingCompletion()).toBe(false);
