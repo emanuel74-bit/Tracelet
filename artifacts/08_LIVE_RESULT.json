@@ -1,0 +1,36 @@
+{
+  "source": "8659ca9",
+  "node": "v22.22.0",
+  "requests": [
+    {
+      "path": "/observe/",
+      "unauthenticated": 403
+    },
+    {
+      "path": "/observe/api/v1/traces",
+      "unauthenticated": 403
+    },
+    {
+      "path": "/observe/assets/index-DZSRTth0.js",
+      "unauthenticated": 403
+    },
+    {
+      "viewport": "1440x900",
+      "realTraceAndWaterfallReload": "PASS"
+    },
+    {
+      "viewport": "1920x1080",
+      "realTraceAndWaterfallReload": "PASS"
+    },
+    {
+      "viewport": "390x844",
+      "realTraceAndWaterfallReload": "PASS"
+    }
+  ],
+  "consoleErrors": [],
+  "externalRequests": [],
+  "traceId": "01a18e10-cefc-70c4-929f-9b3a8f161080",
+  "mixedSchema": "PASS: newer schema omitted and X-Tracelet-Skipped=1",
+  "ttl": "PASS: indexed expired BSON Date record removed by real TTL monitor",
+  "browser": "PASS: real authenticated Tracelet.setup mount; no API interception or response fixtures"
+}
