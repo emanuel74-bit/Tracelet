@@ -3,7 +3,7 @@ import type { Flamegraph, ProfileSummaryPage, TimeWindow } from '../contracts/ob
 
 export class ProfileRepository extends QueryRepository {
   async profiles(q: TraceQuery): Promise<ProfileSummaryPage> {
-    this.validate(q, ['service', 'instanceId', 'from', 'to', 'limit', 'cursor']); const w = this.window(q); const limit = this.limit(q); const filter = this.filter(q, w, 'periodStart'); const c = this.cursor(this.resolved(q, w), 'profiles');
+    this.validate(q, ['service', 'instanceId', 'from', 'to', 'limit', 'cursor']); const { w, c } = this.page(q, 'profiles'); const limit = this.limit(q); const filter = this.filter(q, w, 'periodStart');
     if (c) filter.$or = [{ periodStart: { $lt: new Date(c.s) } }, { periodStart: new Date(c.s), _id: { $lt: c.t } }];
     const rows = await this.find(this.collections.profiles, filter, PROFILE, { periodStart: -1, _id: -1 }, limit + 1); const items = rows.slice(0, limit).map(r => dto<ProfileSummaryPage['items'][number]>(r, PROFILE)); const last = items.at(-1);
     return { items, nextCursor: rows.length > limit && last ? this.encode(this.resolved(q, w), 'profiles', Date.parse(last.periodStart), last.profileId) : null };

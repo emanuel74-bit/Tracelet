@@ -5,7 +5,7 @@ import { escapeSearch } from './filters';
 export class TraceRepository extends QueryRepository {
   async traces(q: TraceQuery): Promise<Page<ObserveTrace>> {
     this.validate(q, ['service', 'instanceId', 'status', 'kind', 'search', 'from', 'to', 'limit', 'cursor']);
-    const w = this.window(q); const limit = this.limit(q); const filter = this.filter(q, w); const c = this.cursor(this.resolved(q, w), 'traces');
+    const { w, c } = this.page(q, 'traces'); const limit = this.limit(q); const filter = this.filter(q, w);
     if (q.status) filter.status = q.status; if (q.kind) filter.kind = q.kind;
     if (q.search) { if (UUID7.test(q.search)) filter._id = q.search; else filter.operation = { $regex: '^' + escapeSearch(q.search) }; }
     if (c) filter.$or = [{ startedAt: { $lt: new Date(c.s) } }, { startedAt: new Date(c.s), _id: { $lt: c.t } }];

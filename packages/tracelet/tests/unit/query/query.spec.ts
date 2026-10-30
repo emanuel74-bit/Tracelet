@@ -47,13 +47,15 @@ describe('query response boundaries', () => {
     expect(result.status).toBe(200); expect(result.headers['X-Tracelet-Skipped']).toBe('2'); expect(result.body).not.toContain('secret');
     expect(c.aggregate).toHaveBeenCalledWith(expect.arrayContaining([{ $match: { schemaVersion: { $gt: 1 }, serviceName: 'worker', startedAt: { $gte: new Date('2026-10-30T00:00:00Z'), $lt: new Date('2026-10-30T01:00:00Z') } } }]), { maxTimeMS: 5000 });
   });
-  it('binds explicit windows across clock advances and rejects drifting implicit windows', async () => {
+  it('emits v2 and preserves implicit and explicit windows across clock advances', async () => {
     const { collections } = fixtures([trace('b'), trace('a')]); let now = Date.parse('2026-10-30T01:00:00Z'); const q = new QueryService(collections, { now: () => now });
     const explicit = { from: '2026-10-30T00:00:00Z', to: '2026-10-30T01:00:00Z', limit: '1' };
     const first = await q.traces(explicit); const implicit = await q.traces({ limit: '1' }); now += 60000;
     await expect(q.traces({ ...explicit, cursor: first.nextCursor! })).resolves.toHaveProperty('items');
-    await expect(q.traces({ limit: '1', cursor: implicit.nextCursor! })).rejects.toMatchObject({ code: 'INVALID_CURSOR' });
-    const decoded = JSON.parse(Buffer.from(first.nextCursor!, 'base64url').toString()); expect(Object.keys(decoded).sort()).toEqual(['f', 's', 't', 'v']);
+    await expect(q.traces({ limit: '1', cursor: implicit.nextCursor! })).resolves.toHaveProperty('items');
+    const decoded = JSON.parse(Buffer.from(first.nextCursor!, 'base64url').toString());
+    expect(decoded).toMatchObject({ v: 2, from: Date.parse(explicit.from), to: Date.parse(explicit.to) });
+    expect(Object.keys(decoded).sort()).toEqual(['f', 'from', 's', 't', 'to', 'v']);
   });
   it('escapes search literals and maps driver errors without exposing secrets', async () => {
     const { c, collections } = fixtures(); const q = new QueryService(collections); await q.traces({ search: 'a.*$' });
@@ -65,12 +67,73 @@ describe('query response boundaries', () => {
     const rows = route === 'profiles'
       ? ['b', 'a'].map(profileId => ({ schemaVersion: 1, profileId, periodStart: new Date('2026-10-30T00:30:00Z') }))
       : ['bbbbbbbbbbbbbbbb', 'aaaaaaaaaaaaaaaa'].map(errorFingerprint => ({ ...trace(errorFingerprint), errorFingerprint, status: 'error' }));
-    const { collections } = fixtures(rows); let now = Date.parse('2026-10-30T01:00:00Z'); const q = new QueryService(collections, { now: () => now });
+    const { collections, c } = fixtures(rows); let now = Date.parse('2026-10-30T01:00:00Z'); const q = new QueryService(collections, { now: () => now });
     const explicit = { to: '2026-10-30T01:00:00Z', limit: '1' };
     const first = await q[route](explicit); const implicit = await q[route]({ limit: '1' }); now += 60000;
     expect(first.nextCursor).toBeTypeOf('string');
     await expect(q[route]({ ...explicit, cursor: first.nextCursor! })).resolves.toHaveProperty('items');
-    await expect(q[route]({ limit: '1', cursor: implicit.nextCursor! })).rejects.toMatchObject({ code: 'INVALID_CURSOR' });
+    await expect(q[route]({ limit: '1', cursor: implicit.nextCursor! })).resolves.toHaveProperty('items');
+    expect(c.find).toHaveBeenLastCalledWith(expect.objectContaining({ [route === 'profiles' ? 'periodStart' : 'startedAt']: { $gte: new Date('2026-10-30T00:00:00Z'), $lt: new Date('2026-10-30T01:00:00Z') } }), expect.anything());
+  });
+  it.each(['traces', 'profiles', 'errors'] as const)('continues %s on another pod and validates cursor migration, bounds and filters before storage', async route => {
+    const rows = route === 'profiles'
+      ? ['profile-b', 'profile-a'].map(profileId => ({ schemaVersion: 1, profileId, periodStart: new Date('2026-10-30T00:30:00Z') }))
+      : ['bbbbbbbbbbbbbbbb', 'aaaaaaaaaaaaaaaa'].map(errorFingerprint => ({ ...trace(errorFingerprint), errorFingerprint, status: 'error' }));
+    const { collections, c } = fixtures(rows);
+    const firstPod = new QueryService(collections, { now: () => Date.parse('2026-10-30T01:00:00Z') });
+    const secondPod = new QueryService(collections, { now: () => Date.parse('2026-11-02T01:00:00Z') });
+    const page = await firstPod[route]({ limit: '1', service: 'worker' });
+    const token = JSON.parse(Buffer.from(page.nextCursor!, 'base64url').toString());
+    const encode = (value: unknown) => Buffer.from(JSON.stringify(value)).toString('base64url');
+    const bounds = { from: new Date(token.from).toISOString(), to: new Date(token.to).toISOString() };
+    for (const supplied of [{}, { from: bounds.from }, { to: bounds.to }, bounds]) {
+      await expect(secondPod[route]({ ...supplied, cursor: page.nextCursor!, service: 'worker', limit: '2' })).resolves.toHaveProperty('items');
+      expect(c.find).toHaveBeenLastCalledWith(expect.objectContaining({ [route === 'profiles' ? 'periodStart' : 'startedAt']: { $gte: new Date(bounds.from), $lt: new Date(bounds.to) } }), expect.anything());
+    }
+    const { from: _from, to: _to, ...legacy } = token;
+    const v1 = encode({ ...legacy, v: 1 });
+    const migrated = await secondPod[route]({ ...bounds, cursor: v1, service: 'worker', limit: '1' });
+    // The fake repository returns both rows; traces/profiles therefore emit another page.
+    if (route !== 'errors') expect(JSON.parse(Buffer.from(migrated.nextCursor!, 'base64url').toString()).v).toBe(2);
+    const badQueries = [
+      { cursor: v1 }, { cursor: v1, from: bounds.from }, { cursor: v1, to: bounds.to },
+      { cursor: page.nextCursor!, from: '2026-10-29T23:59:59Z' },
+      { cursor: page.nextCursor!, to: '2026-10-30T01:00:01Z' },
+      { cursor: page.nextCursor!, service: 'other' },
+      { cursor: page.nextCursor!, instanceId: 'other' },
+      { cursor: encode({ ...token, v: 3 }) }, { cursor: encode({ ...token, secret: true }) },
+      { cursor: encode({ ...token, from: token.to }) },
+      { cursor: encode({ ...token, from: token.from + 0.5 }) },
+      { cursor: encode({ ...token, to: Number.MAX_SAFE_INTEGER }) },
+      { cursor: encode({ ...token, to: token.from + 8 * 86400000 }) },
+      { cursor: encode({ ...token, from: String(token.from) }) },
+      { cursor: encode({ ...token, f: 'bad' }) }, { cursor: 'a'.repeat(513) }, { cursor: 'not-json' },
+    ];
+    vi.mocked(c.find).mockClear(); vi.mocked(c.aggregate).mockClear();
+    for (const bad of badQueries) await expect(secondPod[route]({ service: 'worker', ...bad })).rejects.toMatchObject({ code: 'INVALID_CURSOR' });
+    expect(c.find).not.toHaveBeenCalled(); expect(c.aggregate).not.toHaveBeenCalled();
+    if (route === 'traces') {
+      await expect(secondPod.traces({ cursor: page.nextCursor!, service: 'worker', status: 'ok' })).rejects.toMatchObject({ code: 'INVALID_CURSOR' });
+      await expect(secondPod.traces({ cursor: page.nextCursor!, service: 'worker', search: 'job' })).rejects.toMatchObject({ code: 'INVALID_CURSOR' });
+    }
+    const otherRoute = route === 'traces' ? 'profiles' : 'traces';
+    await expect(secondPod[otherRoute]({ cursor: page.nextCursor!, service: 'worker' })).rejects.toMatchObject({ code: 'INVALID_CURSOR' });
+  });
+  it.each(['traces', 'profiles'] as const)('rejects unrepresentable %s timestamp seek keys before storage', async route => {
+    const rows = route === 'profiles'
+      ? ['profile-b', 'profile-a'].map(profileId => ({ schemaVersion: 1, profileId, periodStart: new Date('2026-10-30T00:30:00Z') }))
+      : [trace('trace-0002'), trace('trace-0001')];
+    const { collections, c } = fixtures(rows);
+    const q = new QueryService(collections);
+    const bounds = { from: '2026-10-30T00:00:00Z', to: '2026-10-30T01:00:00Z', limit: '1' };
+    const page = await q[route](bounds);
+    const token = JSON.parse(Buffer.from(page.nextCursor!, 'base64url').toString());
+    vi.mocked(c.find).mockClear(); vi.mocked(c.aggregate).mockClear();
+    for (const s of [8640000000000001, -8640000000000001]) {
+      const cursor = Buffer.from(JSON.stringify({ ...token, s })).toString('base64url');
+      await expect(q[route]({ ...bounds, cursor })).rejects.toMatchObject({ code: 'INVALID_CURSOR' });
+    }
+    expect(c.find).not.toHaveBeenCalled(); expect(c.aggregate).not.toHaveBeenCalled();
   });
   it('caps merged profiles and stacks while preserving sample accounting', async () => {
     const rows = Array.from({ length: 121 }, (_, n) => ({

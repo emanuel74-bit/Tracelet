@@ -1,6 +1,7 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { projectDto, QueryError } from './filters';
-import { fingerprint, decodeCursor, encodeCursor } from './cursor';
+import { fingerprint, decodeCursor, encodeCursor, invalidCursor } from './cursor';
+import type { Cursor } from './cursor';
 import { HISTOGRAM_BOUNDS_MS } from '../contracts/observe-contracts';
 import type { MongoCollection, TelemetryCollections } from '../storage/collections';
 import { isIsoDateTime } from '../storage/documents';
@@ -23,7 +24,6 @@ export const HEARTBEAT = 'schemaVersion instanceId serviceName serviceVersion ho
 export const projection = (fields: string[]): Record<string, 0 | 1> => Object.fromEntries([['_id', 0], ...fields.map(k => [k, 1])]);
 export const json = <T>(value: unknown): T => JSON.parse(JSON.stringify(value)) as T;
 export const dto = <T>(row: Record<string, unknown>, fields: string[]): T => projectDto<T>(keys(row, fields), fields === TRACE ? 'Trace' : fields === SPAN ? 'Span' : fields === HEARTBEAT ? 'InstanceHeartbeat' : 'CpuProfileSummary');
-export type Cursor = { v: 1; s: number; t: string; f: string };
 export type Stats = Record<string, unknown> & { count: number; errorCount: number; durationSumMs: number; durationMaxMs: number; histogram: number[] };
 export const sumGroup = (id: unknown): Record<string, unknown> => ({ _id: id, count: { $sum: '$count' }, errorCount: { $sum: '$errorCount' }, sampledCount: { $sum: '$sampledCount' }, durationSumMs: { $sum: '$durationSumMs' }, durationMaxMs: { $max: '$durationMaxMs' }, selfSumMs: { $sum: '$selfSumMs' }, selfCount: { $sum: '$selfCount' }, ...Object.fromEntries(HISTOGRAM_BOUNDS_MS.map((_, i) => [`h${i}`, { $sum: { $arrayElemAt: ['$histogram', i] } }])) });
 export const statsProject = (): Record<string, unknown> => ({ _id: 1, count: 1, errorCount: 1, sampledCount: 1, durationSumMs: 1, durationMaxMs: 1, selfSumMs: 1, selfCount: 1, histogram: HISTOGRAM_BOUNDS_MS.map((_, i) => `$h${i}`) });
@@ -61,8 +61,24 @@ export class QueryRepository {
     return this.runtime.diagnostics.run({ skipped: 0, seen: new Map() }, async () => { const value = await fn(); return { value, skipped: this.runtime.diagnostics.getStore()!.skipped }; });
   }
   protected fingerprint(route: string, q: TraceQuery): string { return fingerprint(route, q); }
-  protected cursor(q: TraceQuery, route: string): Cursor | undefined { return decodeCursor(q.cursor, this.fingerprint(route, q)); }
-  protected encode(q: TraceQuery, route: string, s: number, t: string): string { return encodeCursor(s, t, this.fingerprint(route, q)); }
+  protected page(q: TraceQuery, route: string, max = 7 * DAY): { w: TimeWindow; c: Cursor | undefined } {
+    const c = decodeCursor(q.cursor);
+    if (!c) return { w: this.window(q, max), c };
+    if (route !== 'errors' && Math.abs(c.s) > 8640000000000000) invalidCursor();
+    if (c.v === 1 && (q.from === undefined || q.to === undefined)) invalidCursor();
+    let w: TimeWindow;
+    try {
+      if (c.v === 2) {
+        if (c.to - c.from > max) invalidCursor();
+        // Each supplied bound must match independently; omitted bounds come only from the token.
+        w = this.window({ from: q.from ?? new Date(c.from).toISOString(), to: q.to ?? new Date(c.to).toISOString() }, max);
+        if (Date.parse(w.from) !== c.from || Date.parse(w.to) !== c.to) invalidCursor();
+      } else w = this.window(q, max);
+    } catch { return invalidCursor(); }
+    if (c.f !== this.fingerprint(route, this.resolved(q, w))) invalidCursor();
+    return { w, c };
+  }
+  protected encode(q: TraceQuery, route: string, s: number, t: string): string { return encodeCursor(s, t, this.fingerprint(route, q), Date.parse(q.from!), Date.parse(q.to!)); }
   protected resolved(q: TraceQuery, w: TimeWindow): TraceQuery { return { ...q, from: w.from, to: w.to }; }
   protected async skipped(collection: MongoCollection, filter: Record<string, unknown>): Promise<void> {
     const state = this.runtime.diagnostics.getStore(); if (!state) return;

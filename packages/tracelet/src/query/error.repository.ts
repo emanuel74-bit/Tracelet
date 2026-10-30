@@ -3,7 +3,7 @@ import type { ErrorGroup, ErrorGroupPage, ObserveTrace } from '../contracts/obse
 
 export class ErrorRepository extends QueryRepository {
   async errors(q: TraceQuery): Promise<ErrorGroupPage> {
-    this.validate(q, ['service', 'instanceId', 'from', 'to', 'limit', 'cursor']); const w = this.window(q, DAY); const limit = this.limit(q); const c = this.cursor(this.resolved(q, w), 'errors');
+    this.validate(q, ['service', 'instanceId', 'from', 'to', 'limit', 'cursor']); const { w, c } = this.page(q, 'errors', DAY); const limit = this.limit(q);
     return this.expensive(async () => {
       const rows = await this.find(this.collections.traces, { ...this.filter(q, w), status: 'error' }, TRACE, { startedAt: -1, _id: -1 }, 10001); const groups = new Map<string, ErrorGroup>();
       for (const r of rows.slice(0, 10000)) {
