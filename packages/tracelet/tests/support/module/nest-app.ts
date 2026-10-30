@@ -5,7 +5,8 @@ import { FastifyAdapter } from '@nestjs/platform-fastify';
 import type { TraceletModuleOptions, TraceletSetupOptions } from '../../../src/index.js';
 import { createTraceletInstrument } from '../../../src/instrumentation/index.js';
 import { Tracelet } from '../../../src/tracelet.js';
-import { TRACELET_DEPS, TraceletModule } from '../../../src/tracelet.module.js';
+import { TRACELET_DEPS } from '../../../src/internal/test-seams.js';
+import { TraceletModule } from '../../../src/tracelet.module.js';
 import type { LifecycleDeps } from '../../../src/tracelet.module.js';
 import { fakeCreateStorage, recordingDiagnostics } from './fakes.js';
 import type { DiagLine, FakeStorageLog } from './fakes.js';
@@ -28,11 +29,11 @@ export const TEST_OPTIONS: TraceletModuleOptions = {
 };
 
 /** TraceletModule.forRoot with the lifecycle seams (fake storage over empty collections) injected. */
-export function testTraceletModule(options: TraceletModuleOptions, log: FakeStorageLog, diag?: { lines: DiagLine[] }): DynamicModule {
+export function testTraceletModule(options: TraceletModuleOptions, log: FakeStorageLog, diag?: { lines: DiagLine[] }, collections?: Record<string, unknown>): DynamicModule {
   const base = TraceletModule.forRoot(options);
   const d = recordingDiagnostics();
   if (diag) diag.lines = d.lines;
-  const deps: LifecycleDeps = { createStorage: fakeCreateStorage(log, { collections: emptyCollections() }), diagnostics: d.diagnostics };
+  const deps: LifecycleDeps = { createStorage: fakeCreateStorage(log, { collections: collections ?? emptyCollections() }), diagnostics: d.diagnostics };
   return { ...base, providers: [...(base.providers ?? []), { provide: TRACELET_DEPS, useValue: deps }] };
 }
 
@@ -52,6 +53,8 @@ export interface BootOptions {
   trustProxy?: boolean;
   log?: FakeStorageLog;
   listenHost?: string;
+  /** Runs after create and before Tracelet.setup (host middleware such as CORS). */
+  beforeSetup?: (app: INestApplication) => void | Promise<void>;
 }
 
 /** NestFactory.create + Tracelet.setup (before init) + listen on an ephemeral port. */
@@ -67,6 +70,7 @@ export async function bootApp(o: BootOptions): Promise<BootedApp> {
   }
   if (o.globalPrefix) app.setGlobalPrefix(o.globalPrefix);
   app.enableShutdownHooks();
+  await o.beforeSetup?.(app);
   if (o.setup !== false) Tracelet.setup(app, o.setup ?? {});
   await app.listen(0, o.listenHost ?? '127.0.0.1');
   const port = (app.getHttpServer().address() as { port: number }).port;

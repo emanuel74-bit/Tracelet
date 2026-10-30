@@ -1,4 +1,5 @@
 // Adapted from nestjs/observe@7500fba (MIT, Copyright (c) 2017-present Kamil Mysliwiec). Changes: see third_party/nestjs-observe/FORK_DELTA.instrumentation.md
+
 import type { CompleteTraceEventNode, OngoingTraceEventNode } from '../../context/vendor/trace-events.interfaces.js';
 
 type Node = CompleteTraceEventNode | OngoingTraceEventNode;

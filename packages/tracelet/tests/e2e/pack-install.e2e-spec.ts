@@ -141,6 +141,13 @@ for (const flavour of ['cjs', 'esm'] as const) {
       expect(files.filter(f => f.startsWith('node_modules/'))).toEqual([]);
       expect(files.filter(f => /\.map$/.test(f))).toEqual([]);
       expect(files).toEqual(expect.arrayContaining(['LICENSE', 'THIRD_PARTY_NOTICES.md', 'assets/dashboard/index.html', 'dist/index.js']));
+      // every vendored file keeps its SHA-pin header in dist, and the bundled UI libraries are listed with their licence
+      const vendored = files.filter(f => /^dist\/.*\/vendor\/.*\.js$/.test(f));
+      expect(vendored.length).toBe(13);
+      for (const f of vendored) expect(readFileSync(join(installed, f), 'utf8'), f).toContain('nestjs/observe@7500fba');
+      const notices = readFileSync(join(installed, 'THIRD_PARTY_NOTICES.md'), 'utf8');
+      for (const needle of ['react-dom', 'scheduler', 'Meta Platforms, Inc. and affiliates', 'Kamil Mysliwiec']) expect(notices).toContain(needle);
+      expect(notices).not.toMatch(/intentionally NOT created|TODO\(user\): supply/);
       const total = walk(installed).reduce((n, f) => n + statSync(f).size, 0);
       console.log(`[pack:${flavour}] installed package: ${files.length} files, ${total} bytes`);
       // fixtures / secrets never ship in the dashboard bundle

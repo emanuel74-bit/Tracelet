@@ -17,6 +17,7 @@ import { markInternal } from './shared/brand';
 import { createDiagnostics } from './shared/diagnostics';
 import type { Diagnostics } from './shared/diagnostics';
 import { createInstanceIdentity } from './shared/instance-identity';
+import { TRACELET_DEPS } from './internal/test-seams';
 import { createStorage } from './storage';
 import { TRACELET_VERSION } from './version';
 
@@ -34,7 +35,6 @@ import { TRACELET_VERSION } from './version';
  */
 
 export const TRACELET_OPTIONS = 'TRACELET_MODULE_OPTIONS';
-export const TRACELET_DEPS = 'TRACELET_LIFECYCLE_DEPS';
 
 /** Constructor seams (tests). Production uses the defaults. */
 export interface LifecycleDeps {
@@ -49,8 +49,11 @@ export interface LifecycleDeps {
 
 /** Returned by the async options provider when the host's factory threw (the app must still boot). */
 class FactoryFailure {
-  constructor(readonly errorName: string) {}
+  constructor(readonly errorName: string, readonly message?: string) {}
 }
+
+/** Longest the host waits for a forRootAsync factory before Tracelet gives up (tracing disabled, host boots). */
+export const DEFAULT_FACTORY_TIMEOUT_MS = 5000;
 
 export type LifecycleState = 'inactive' | 'disabled' | 'config-error' | 'failed' | 'active' | 'stopped';
 
@@ -82,14 +85,14 @@ function nestCoreVersion(): string | undefined {
   }
 }
 
-let active: TraceletLifecycle | undefined;
-const setActive = (lifecycle: TraceletLifecycle): void => {
-  active = lifecycle;
+const live = new Set<TraceletLifecycle>();
+const register = (lifecycle: TraceletLifecycle): void => {
+  live.add(lifecycle);
 };
 
-/** The most recently constructed lifecycle in this process (used by Tracelet.listen, which has no app reference). */
-export function getActiveLifecycle(): TraceletLifecycle | undefined {
-  return active;
+/** Lifecycles of this process whose application has not started shutting down (oldest first). Used by Tracelet.listen without an app. */
+export function getLiveLifecycles(): TraceletLifecycle[] {
+  return [...live].filter(l => !l.closing);
 }
 
 @Injectable()
@@ -101,7 +104,7 @@ export class TraceletLifecycle implements OnModuleInit, OnApplicationBootstrap, 
 
   private _state: LifecycleState = 'inactive';
   private _config: ResolvedTraceletConfig | undefined;
-  private failure: { kind: 'config'; issues: readonly string[] } | { kind: 'other'; name: string } | undefined;
+  private failure: { kind: 'config'; issues: readonly string[] } | { kind: 'other'; name: string; message?: string } | undefined;
 
   private identityId: string | undefined;
   private queue: BoundedTelemetryQueue | undefined;
@@ -115,6 +118,7 @@ export class TraceletLifecycle implements OnModuleInit, OnApplicationBootstrap, 
   private beforeShutdownPromise: Promise<void> | undefined;
   private shutdownPromise: Promise<void> | undefined;
   private bootstrapped = false;
+  private _closing = false;
 
   constructor(
     @Inject(TRACELET_OPTIONS) options: unknown,
@@ -124,20 +128,25 @@ export class TraceletLifecycle implements OnModuleInit, OnApplicationBootstrap, 
     this.diagnostics = this.deps.diagnostics ?? createDiagnostics('Tracelet');
     this.env = this.deps.env ?? process.env;
     this.makeStorage = this.deps.createStorage ?? createStorage;
-    setActive(this);
+    register(this);
     // Pure and side-effect free: lets Tracelet.setup (which runs before app.init()) see the decision.
     try {
       if (options instanceof FactoryFailure) {
-        this.failure = { kind: 'other', name: options.errorName };
+        this.failure = { kind: 'other', name: options.errorName, ...(options.message !== undefined ? { message: options.message } : {}) };
         this._state = 'failed';
       } else {
         this._config = resolveOptions(options as TraceletModuleOptions, this.env);
         this._state = this._config.enabled ? 'inactive' : 'disabled';
       }
     } catch (e) {
-      this.failure = e instanceof TraceletConfigError ? { kind: 'config', issues: e.issues } : { kind: 'other', name: errorName(e) };
+      this.failure = e instanceof TraceletConfigError ? { kind: 'config', issues: e.issues } : { kind: 'other', name: errorName(e), message: safeMessage(e) };
       this._state = e instanceof TraceletConfigError ? 'config-error' : 'failed';
     }
+  }
+
+  /** True once this application started shutting down (or has shut down). */
+  get closing(): boolean {
+    return this._closing;
   }
 
   get state(): LifecycleState {
@@ -182,7 +191,7 @@ export class TraceletLifecycle implements OnModuleInit, OnApplicationBootstrap, 
         this.wire(this._config);
         this._state = 'active';
       } catch (e) {
-        this.failure = { kind: 'other', name: errorName(e) };
+        this.failure = { kind: 'other', name: errorName(e), message: safeMessage(e) };
         this._state = 'failed';
         this.teardownAfterFailedWiring();
         this.reportFailure();
@@ -217,6 +226,7 @@ export class TraceletLifecycle implements OnModuleInit, OnApplicationBootstrap, 
   }
 
   beforeApplicationShutdown(): Promise<void> {
+    this._closing = true;
     if (this._state !== 'active') return Promise.resolve();
     return (this.beforeShutdownPromise ??= runOutsideTrace(async () => {
       const bound = this.deps.beforeShutdownBoundMs ?? 2000;
@@ -237,6 +247,8 @@ export class TraceletLifecycle implements OnModuleInit, OnApplicationBootstrap, 
   }
 
   onApplicationShutdown(): Promise<void> {
+    this._closing = true;
+    live.delete(this);
     if (this._state !== 'active') return Promise.resolve();
     return (this.shutdownPromise ??= runOutsideTrace(async () => {
       const guard = (fn: () => void): void => {
@@ -389,11 +401,23 @@ export class TraceletLifecycle implements OnModuleInit, OnApplicationBootstrap, 
     const message =
       f.kind === 'config'
         ? `Tracelet is DISABLED because its configuration is invalid: ${f.issues.join('; ').slice(0, 1000)}`
-        : `Tracelet is DISABLED because it could not be initialised (${f.name}).`;
+        : `Tracelet is DISABLED because it could not be initialised (${f.name}${f.message ? `: ${f.message}` : ''}).`;
     this.diagnostics.error('init', message);
   }
 }
 markInternal(TraceletLifecycle);
+
+/** A short, credential-free description of an error: connection strings are replaced wholesale, then the default redactor runs. */
+function safeMessage(e: unknown): string | undefined {
+  try {
+    const raw = (e as { message?: unknown } | null)?.message;
+    if (typeof raw !== 'string' || raw.length === 0) return undefined;
+    const noUris = raw.slice(0, 500).replace(/[a-z][a-z0-9+.-]*:\/\/\S+/gi, '[REDACTED_URI]');
+    return new LogRedactor().redactMessage(noUris).replace(/\s+/g, ' ').slice(0, 200);
+  } catch {
+    return undefined;
+  }
+}
 
 function errorName(e: unknown): string {
   try {
@@ -408,6 +432,8 @@ export interface TraceletModuleAsyncOptions {
   imports?: ModuleMetadata['imports'];
   inject?: Array<InjectionToken | OptionalFactoryDependency>;
   useFactory: (...args: any[]) => TraceletModuleOptions | Promise<TraceletModuleOptions>;
+  /** How long the host waits for `useFactory` before Tracelet is disabled and the application boots without it. Default 5000, range 1..60000. */
+  factoryTimeoutMs?: number;
 }
 
 @Module({})
@@ -432,10 +458,18 @@ export class TraceletModule {
           inject: options.inject ?? [],
           // A failing host factory must not stop the host application from booting: tracing stays disabled.
           useFactory: async (...args: unknown[]) => {
+            const ms = Number.isSafeInteger(options.factoryTimeoutMs) && options.factoryTimeoutMs! >= 1 && options.factoryTimeoutMs! <= 60_000 ? options.factoryTimeoutMs! : DEFAULT_FACTORY_TIMEOUT_MS;
+            let timer: ReturnType<typeof setTimeout> | undefined;
             try {
-              return await options.useFactory(...args);
+              const timeout = new Promise<never>((_, reject) => {
+                timer = setTimeout(() => reject(new Error(`options factory did not resolve within ${ms} ms`)), ms);
+                timer.unref?.();
+              });
+              return await Promise.race([Promise.resolve().then(() => options.useFactory(...args)), timeout]);
             } catch (e) {
-              return new FactoryFailure(errorName(e));
+              return new FactoryFailure(errorName(e), safeMessage(e));
+            } finally {
+              if (timer) clearTimeout(timer);
             }
           },
         },

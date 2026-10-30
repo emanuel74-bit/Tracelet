@@ -1,4 +1,5 @@
 import { normalizeBasePath } from './base-path';
+import { stripCorsHeaders } from './write-response';
 import { methodNotAllowedResponse } from './dispatcher';
 import type { Dispatcher } from './dispatcher';
 
@@ -10,6 +11,9 @@ export interface FastifyLike {
 const ALL_METHODS = ['DELETE', 'GET', 'HEAD', 'PATCH', 'POST', 'PUT', 'OPTIONS'];
 
 function send(reply: any, r: { status: number; headers: Record<string, string>; body: string | Buffer }): any {
+  stripCorsHeaders(reply);
+  if (reply.raw) stripCorsHeaders(reply.raw); // headers set on the raw response are not visible to reply.removeHeader
+  // CORS headers added by host hooks (@fastify/cors) must not leak onto dashboard/API responses
   reply.code(r.status);
   reply.headers(r.headers);
   return reply.send(r.body);

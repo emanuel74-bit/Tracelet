@@ -1,9 +1,9 @@
-import type { INestApplication } from '@nestjs/common';
+import type { INestApplication, INestApplicationContext } from '@nestjs/common';
 import type { TraceletSetupOptions, TraceletStandaloneServerOptions } from './contracts/observe-contracts';
 import { createAuthGate, createDispatcher, createStaticAssets, mountExpress, mountFastify, normalizeBasePath, startStandaloneServer } from './http';
 import type { Dispatcher, StandaloneServer } from './http';
 import { createDiagnostics } from './shared/diagnostics';
-import { getActiveLifecycle, TraceletLifecycle } from './tracelet.module';
+import { getLiveLifecycles, TraceletLifecycle } from './tracelet.module';
 
 const diagnostics = createDiagnostics('Tracelet');
 
@@ -66,14 +66,28 @@ export class Tracelet {
 
   /**
    * Worker-only processes (no Nest HTTP server): a bounded node:http listener on `host` (default 127.0.0.1; a non-loopback
-   * host requires `authorize`). Needs TraceletModule imported in a Nest application (context) of this process, created before
-   * this call. Resolves `undefined` when Tracelet is disabled. The server is closed with the application.
+   * host requires `authorize`). Needs `TraceletModule` in a Nest application (context) of this process, created before this
+   * call. Pass that application as `app` whenever the process may hold more than one (without it the most recently created
+   * application that is not shutting down is used, with a warning when there are several). Resolves `undefined` when
+   * Tracelet is disabled; throws when the selected application is already shutting down. The server is closed with the application.
    */
-  static async listen(options: TraceletStandaloneServerOptions): Promise<StandaloneServer | undefined> {
-    const lifecycle = getActiveLifecycle();
-    if (lifecycle === undefined) {
-      throw new Error('Tracelet.listen(): TraceletModule is not imported or the application has not been created yet.');
+  static async listen(options: TraceletStandaloneServerOptions, app?: INestApplicationContext): Promise<StandaloneServer | undefined> {
+    let lifecycle: TraceletLifecycle | undefined;
+    if (app !== undefined) {
+      try {
+        lifecycle = app.get(TraceletLifecycle, { strict: false });
+      } catch {
+        throw new Error('Tracelet.listen(): TraceletModule is not imported by the given application.');
+      }
+    } else {
+      const live = getLiveLifecycles();
+      lifecycle = live[live.length - 1];
+      if (live.length > 1) diagnostics.warn('listen-ambiguous', 'Tracelet.listen(): several applications with TraceletModule are alive in this process; using the most recent one. Pass the application as the second argument.');
     }
+    if (lifecycle === undefined) {
+      throw new Error('Tracelet.listen(): TraceletModule is not imported, the application has not been created yet, or it has already shut down.');
+    }
+    if (lifecycle.closing) throw new Error('Tracelet.listen(): the application is already shutting down.');
     normalizeBasePath(options.path ?? '/observe');
     normalizeBasePath(options.publicBasePath ?? options.path ?? '/observe');
     if (!lifecycle.enabled) {

@@ -62,9 +62,10 @@ export function traceletOptions(config: WorkerConfig): TraceletModuleOptions {
 }
 
 /** Constant-time bearer check; replace with your own SSO / session check in a real service. */
-export function bearerAuthorize(token: string): (req: TraceletAuthRequest) => boolean {
-  const expected = createHash('sha256').update(token).digest();
+export function bearerAuthorize(token: string | undefined): (req: TraceletAuthRequest) => boolean {
+  const expected = createHash('sha256').update(token ?? '').digest();
   return req => {
+    if (typeof token !== 'string' || token.length === 0) return false; // not configured: deny
     const header = req.headers.authorization;
     const value = Array.isArray(header) ? header[0] : header;
     if (typeof value !== 'string' || !value.startsWith('Bearer ')) return false;
@@ -101,7 +102,7 @@ export async function startWorker(config: WorkerConfig, injected?: { channel?: C
   const observe = await Tracelet.listen({
     host: config.observeHost,
     port: config.observePort,
-    ...(config.observeToken !== undefined ? { authorize: bearerAuthorize(config.observeToken) } : { allowLoopbackWithoutAuth: true }),
+    ...(config.observeToken !== undefined ? { authorize: bearerAuthorize(config.observeToken) } : { allowLoopbackWithoutAuth: process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test' }),
   });
 
   const orders = app.get(OrdersService);

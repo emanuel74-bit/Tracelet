@@ -243,8 +243,8 @@ export function resolveOptions(user: TraceletModuleOptions, env: TraceletEnv = p
     batchSize: c.int('buffer.batchSize', b.batchSize, 200, 1, 5000),
     maxBatchBytes: c.int('buffer.maxBatchBytes', b.maxBatchBytes, 4 * MIB, 64 * 1024, 64 * MIB),
     maxWriteDocsPerSecond: c.int('buffer.maxWriteDocsPerSecond', b.maxWriteDocsPerSecond, 2000, 1, 100_000),
-    maxRetries: c.int('buffer.maxRetries', b.maxRetries, 3, 0, 20),
-    shutdownFlushTimeoutMs: c.int('buffer.shutdownFlushTimeoutMs', b.shutdownFlushTimeoutMs, 5000, 0, 60_000),
+    maxRetries: c.int('buffer.maxRetries', b.maxRetries, 3, 0, 10),
+    shutdownFlushTimeoutMs: c.int('buffer.shutdownFlushTimeoutMs', b.shutdownFlushTimeoutMs, 5000, 1, 15_000),
   };
 
   const r = c.section('retention', top.retention, ['tracesHours', 'profilesHours', 'rollupsDays', 'instancesHours']);

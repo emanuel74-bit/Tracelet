@@ -58,7 +58,7 @@ Open `http://127.0.0.1:3100/observe/`. Stop with Ctrl+C: the worker flushes tele
 | `SERVICE_NAME` | `nest-worker-example` | service shown in the dashboard |
 | `AMQP_URL`, `AMQP_QUEUE` | unset, `orders` | real RabbitMQ; unset = in-process fake channel |
 | `OBSERVE_HOST`, `OBSERVE_PORT` | `127.0.0.1`, `3100` | dashboard listener (non-loopback host requires `OBSERVE_TOKEN`) |
-| `OBSERVE_TOKEN` | unset | when set, `/observe` requires `Authorization: Bearer <token>`; when unset only loopback peers are allowed |
+| `OBSERVE_TOKEN` | unset | when set, `/observe` requires `Authorization: Bearer <token>`; when unset, loopback peers are allowed only if NODE_ENV is development or test (otherwise everything is denied) |
 | `DEMO_MESSAGES`, `DEMO_INTERVAL_MS` | `0`, `200` | fake channel demo traffic |
 | `SAMPLE_RATE`, `MAX_ROOTS_PER_SECOND`, `QUEUE_MAX_TRACES` | `1`, library default, library default | tuning |
 | `TRACELET_DISABLED=1` | | kill switch: the same worker with Tracelet completely off |

@@ -1,25 +1,33 @@
-# CR-DSH-001 resolution: UI toolchain lock (LEAD, Mission 07 slice B)
+# CR-DSH-001 resolution: UI toolchain lock (LEAD, Mission 07 slice B, revised after the Stage 07 review)
 
-Status: **NOT APPROVED as submitted (conditions not met); no root change made.** The committed `packages/tracelet/assets/dashboard` bytes remain the runtime truth.
+Status: **APPROVED and applied** (root workspace + single root lockfile + `packages/tracelet/ui/.gitattributes`). The committed `packages/tracelet/assets/dashboard` bytes remain the runtime truth and were proven reproducible.
 
-Condition set by the orchestrator: add `packages/tracelet/ui` as a root npm workspace with the single root lockfile **only if** `npm install --legacy-peer-deps` plus the UI typecheck / lint / unit / build still pass **and** the committed `assets/dashboard` bytes do NOT change after a rebuild (asset-manifest hashes compared).
+Condition set by the orchestrator: add `packages/tracelet/ui` as a root npm workspace with the single root lockfile **only if** `npm install --legacy-peer-deps` plus the UI typecheck / lint / unit / build still pass **and** the committed `assets/dashboard` bytes do NOT change after a rebuild.
 
-## What was run (worktree `D:\codeShit\Tracelet-wt\m07`, Windows, Node 22.22.0, npm 10.9.4, `core.autocrlf=true`)
+## History
 
-1. Root `package.json` `workspaces` temporarily set to `["packages/tracelet", "packages/tracelet/ui"]`; `npm install --legacy-peer-deps` : `added 59 packages, removed 1 package` (exit 0, one root lockfile).
-2. `npm run -w packages/tracelet/ui typecheck` : exit 0. `lint` : exit 0. `test` (vitest): 2 files, **13 passed / 13**. `build` (`tsc --noEmit && vite build && write-manifest`): exit 0, "Dashboard manifest: 3 files, 247992 bytes".
-3. Rebuild comparison against the committed assets:
-   * `assets/index-DZSRTth0.js` (232148 bytes) and `assets/index-8H8qAzKJ.css` (15338 bytes): **identical** (same names, same sha256).
-   * `index.html`: **different**: committed 491 bytes (LF, `* -text` attribute in `assets/dashboard/.gitattributes`), rebuilt 506 bytes (CRLF). Therefore `asset-manifest.json` differs in the `index.html` entry only (size 491 -> 506, sha256 `3c4d17c7...` -> `d9b8649b...`).
-   * Cause (observed, not fixed): `packages/tracelet/ui/index.html` is checked out with CRLF on this Windows machine (`git ls-files --eol`: `i/lf w/crlf attr/`, no `eol` attribute), Vite copies the line endings of its source HTML, and the committed output was produced with LF.
+First attempt (Windows checkout, `core.autocrlf=true`): typecheck, lint, unit (13/13) and build passed, JS and CSS rebuilt byte-identically, but `ui/index.html` was checked out with CRLF (`git ls-files --eol`: `i/lf w/crlf attr/`), Vite copied the CRLF into `assets/dashboard/index.html` (506 bytes vs the committed 491) and the manifest differed. The CR was held back.
 
-## Decision
+The first proposed fix, `ui/.gitattributes` = `* text eol=lf`, was rejected in review (L6): it would force text conversion of the binary screenshots under `ui/tests/screenshots/*.png`.
 
-The stated condition (bytes unchanged) is not met on this machine, so the workspace was **not** added: root `package.json` and `package-lock.json` workspace/UI entries were reverted, the rebuilt assets were discarded (`git checkout -- packages/tracelet/assets`) and `npm install --legacy-peer-deps` was run again to prune the UI packages. The only lockfile change in this worktree is the devDependency `mongodb-memory-server` for the opt-in e2e suites.
+## Fix and proof
 
-## Path to approval (small, for the owner of `ui/`)
+`packages/tracelet/ui/.gitattributes`:
 
-* Add `packages/tracelet/ui/.gitattributes` with `* text eol=lf` (and renormalise `ui/index.html`) so the HTML source has LF on every checkout, then repeat steps 1-3. If `index.html` then rebuilds to the committed 491 bytes / `3c4d17c7...`, the workspace addition is approved as requested (root `workspaces` + single root lockfile, `npm install --legacy-peer-deps`; UI checks above all pass already).
-* Until then the package consumes only the committed assets (no UI toolchain at runtime or in `npm pack`); `ui/` is excluded from the tarball (asserted by `tests/e2e/pack-install.e2e-spec.ts`).
+```
+* text=auto eol=lf
+*.png binary
+```
 
-Playwright browser tests (`test:e2e` in `ui/`) were NOT run for this CR.
+Verification A (clean clone, as a fresh developer on Windows would get it): `git clone` of the worktree into the scratchpad, `core.autocrlf=true`, `.gitattributes` committed, `ui/index.html` re-checked out: `git ls-files --eol` says `i/lf w/lf attr/text=auto eol=lf`; `ui/tests/screenshots/dashboard-390.png` says `i/-text w/-text` (untouched binary). Workspace added, `npm install --legacy-peer-deps`, `npm run -w packages/tracelet/ui build` printed "Dashboard manifest: 3 files, 247977 bytes", and `git status packages/tracelet/assets` is **empty** (index.html, both hashed assets and `asset-manifest.json` are byte-identical to the committed ones).
+
+Verification B (this worktree, `index.html` converted to LF the way the attribute does on checkout): `npm install --legacy-peer-deps` ("added 59 packages, removed 1 package"), UI `typecheck` exit 0, `lint` exit 0, `test` 13/13, `build` exit 0, `git diff --quiet -- packages/tracelet/assets` reports unchanged.
+
+Lockfile: one root `package-lock.json`. Compared with HEAD: 0 existing packages changed version, 110 packages added (the UI toolchain), 1 duplicate nested `@types/node` removed (deduped); the rest of the diff is hoisting and formatting.
+
+## What the committer must do
+
+* Commit `packages/tracelet/ui/.gitattributes` first and renormalise the UI sources once: `git add --renormalize packages/tracelet/ui` (the Windows working copy of the other UI files is still CRLF until then; the repository index already holds LF).
+* Playwright browser tests (`test:e2e` in `ui/`) were NOT run for this CR.
+
+Runtime and `npm pack` are unaffected: `ui/` is not in the `files` list (asserted by `tests/e2e/pack-install.e2e-spec.ts`).

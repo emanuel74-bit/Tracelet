@@ -3,12 +3,13 @@
   "private": true,
   "version": "0.0.0",
   "workspaces": [
-    "packages/tracelet"
+    "packages/tracelet",
+    "packages/tracelet/ui"
   ],
   "scripts": {
-    "build": "npm run -w packages/tracelet build",
-    "test": "npm run -w packages/tracelet test",
-    "lint": "npm run -w packages/tracelet lint",
-    "typecheck": "npm run -w packages/tracelet typecheck"
+    "build": "npm run -w tracelet build",
+    "test": "npm run -w tracelet test",
+    "lint": "npm run -w tracelet lint",
+    "typecheck": "npm run -w tracelet typecheck"
   }
 }
