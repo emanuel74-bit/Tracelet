@@ -1,7 +1,9 @@
 {
   "compilerOptions": {
     "target": "ES2023",
-    "lib": ["ES2023"],
+    "lib": [
+      "ES2023"
+    ],
     "module": "node16",
     "moduleResolution": "node16",
     "strict": true,
@@ -13,7 +15,18 @@
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
-    "types": ["node"]
+    "types": [
+      "node"
+    ],
+    "paths": {
+      "tracelet": [
+        "./src/index.ts"
+      ]
+    }
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts", "bench/**/*.ts"]
+  "include": [
+    "src/**/*.ts",
+    "tests/**/*.ts",
+    "bench/**/*.ts"
+  ]
 }

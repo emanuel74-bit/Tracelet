@@ -1,0 +1,16 @@
+# Local development only. Starts RabbitMQ and MongoDB for the example worker. Credentials below are throwaway defaults for a
+# loopback-only dev stack; use a dedicated observability user and a real secret store anywhere else.
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    ports:
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672"
+  mongo:
+    image: mongo:8
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - tracelet-mongo:/data/db
+volumes:
+  tracelet-mongo:

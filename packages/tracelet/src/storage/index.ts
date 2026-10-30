@@ -39,6 +39,8 @@ export function createStorage(config: TraceletModuleOptions, queue: TelemetryQue
     finally { if (timer) clearTimeout(timer); }
   };
   return {
+    /** The query facade (QueryService) reads through the same pool. */
+    collections,
     start(): void { runOutsideTrace(() => { if (started || stopped) return; started = true; writer.start(); heartbeat.start(); void connect(); }); },
     stop(): Promise<void> { return runOutsideTrace(() => stopPromise ??= (async () => { stopped = true; wakeRetry?.(); heartbeat.stop(); const deadline = Date.now() + (b?.shutdownFlushTimeoutMs ?? 5000); await bounded(writer.shutdown(), deadline); await bounded(client.close(), deadline); })()); },
     flush(): Promise<void> { return writer.flush(); },

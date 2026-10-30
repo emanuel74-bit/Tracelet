@@ -1,0 +1,21 @@
+{
+  "name": "tracelet-nest-worker-example",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Minimal consumer of the tracelet package: a raw amqplib consumer in a Nest application context.",
+  "scripts": {
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.1.4",
+    "@nestjs/core": "^11.1.4",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
+    "tracelet": "file:../.."
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "amqplib": "^0.10.5",
+    "typescript": "~5.9.3"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "rootDir": "../../..",
+    "sourceMap": false
+  },
+  "include": ["./worker-fixture.ts", "../../../examples/nest-worker/src/**/*.ts", "../../../src/**/*.ts"]
+}
