@@ -3,7 +3,7 @@
 > **SUPERSEDED / LOW-TRUST (read first).** Independent review of 9d3eb02 (finding H1) showed that every "on" run in the body below and in the first
 > addendum measured ROOT-ONLY tracing: the benchmark child ran with `NODE_ENV=production` and the default instrument, which is disabled there, so no provider
 > was proxied (spans ~= traces, `method_rollups` 0). The claim "about 6 to 7 instrumented provider calls per message" was therefore not true of the measured
-> runs, and every B/C/D figure below understates the product cost. In addition the first five JSON files were taken with C: below the mongod disk floor.
+> runs, and every B/C/D figure below understates the product cost (shown for Node 22.22.0 by the provider-instrumented rerun; for Node 24 / 20 this is an inference, not measured). In addition the first five JSON files were taken with C: below the mongod disk floor.
 > The valid evidence is the section "Node 22.22.0 with provider instrumentation active" at the end of this file (and its JSON); Node 24 / 20 have NOT been re-measured.
 
 Status: MEASURED on one Windows host, five runtimes (Node 22.22.0, 24.22.2, 20.19.5 plus two extra points, 22.23.4 and 20.20.2). The integrated pipeline
@@ -76,7 +76,7 @@ Wall time: about 17 to 19 min per runtime with D, about 10 min on Node 20 (D ski
 Raw artifacts (one per runtime, all `status: done`):
 `artifacts/09_T20_integrated_node22.22.0.json`, `..._node24.json` (v24.22.2), `..._node20.19.5.json`, `..._node22.23.4.json` (extra), `..._node20.20.2.json` (extra).
 
-## Results (closed-loop saturation, the most reproducible load)
+## Results (closed-loop saturation, the most reproducible load) [ROOT-ONLY, SUPERSEDED: providers were not instrumented in these runs]
 
 Primary metric: child CPU per message, mean paired delta of 6 pairs, off baseline about 220 us/msg. Format: delta % +- 95% half width (absolute us/msg). All verdicts `bounded` unless noted;
 every pair had the same sign. Baseline spread of the off mode across pairs (coefficient of variation) was 0.6 to 1.3% on all quiet runs, so a 15% delta is far outside CPU-accounting noise in this load.
@@ -117,7 +117,7 @@ of a 5 to 10 s run (module load, mongodb driver, buffers, a full trace queue in 
 
 Shutdown (`app.close()` incl. final flush): off 1.5 to 2 ms; B 12 to 16 ms; D 35 to 50 ms (final profile window persisted at shutdown); C 5.01 to 5.03 s in EVERY pair on every runtime (see finding 1).
 
-## Proof that data was produced and persisted
+## Proof that data was produced and persisted [ROOT-ONLY, SUPERSEDED]
 
 Read back from the real mongod after each on-run (B/D; Node 24 shown, the other runtimes match): `rootsStarted` 20 500 (incl. 500 warm-up), `rootsSampledOut` 19 427 to 19 568 (B, offered),
 `tracesDroppedAdmission` 812 to 983 (default `maxRootsPerSecond` 20 against about 200 sampled roots/s in the closed load; 85 to 90% of sampled roots are rejected by the per-instance admission bucket at this rate, which is the production default behaviour),
@@ -148,7 +148,7 @@ Mode D on Node 20 on Windows is NOT RUN: the profiler refuses the default rate t
 Disk note: during this work `C:` ran out of space (0 MB free) and two attempts to run Node 22.22.0 and 20.19.5 aborted (mongod died, or mongodb-memory-server could not start, which the spec reports as skipped, not as a pass); the final runs used `TEMP` on `D:` and completed.
 The JSON files from the aborted attempts were deleted and replaced.
 
-## Addendum (orchestrator, 2026-11-02): Node 22.22.0 RERUN on a healthy disk supersedes the first 22.22.0 file
+## [ROOT-ONLY, SUPERSEDED] Addendum (orchestrator, 2026-11-02): Node 22.22.0 RERUN on a healthy disk supersedes the first 22.22.0 file
 
 The first full runs (all five JSON files above) were taken while the host's C: drive had about 0.4 GB free. mongod refuses index creation below 500 MB free
 (`available disk space ... less than required minimum`), which the orchestrator reproduced and which explains the earlier T12 timeouts and missing `instances` rows.
@@ -179,9 +179,9 @@ Defects/observations from the rerun:
 
 File: `artifacts/09_T20_integrated_node22.22.0_providers.json`. Changes versus the earlier runs (review finding H1): the child now builds its instrument with
 `createTraceletInstrument({ enabled: true })` (the default instrument is OFF under `NODE_ENV=production`), and an "on" row is invalid when persisted spans < 3 x traces.
-Result: 6/6 valid pairs and 0 contended pairs in every scenario; about 5 spans per trace (e.g. B-offered 224 traces / ~1100 spans), rollups persisted,
+Result: 6/6 valid pairs and 0 contended pairs in every scenario; about 5 spans per trace (e.g. B-offered 224 traces / ~1100 spans), rollups persisted in B/D (not in C),
 queue depth 0 after stop. Same host and method as above (Windows 10, i5-7400 4 cores, loopback in-memory mongod 8.2.6, TEMP on D:, synthetic 200 us handler with
-about 6 to 7 provider calls, fake in-process channel). Host probe at start cpuBusy 0.26, at end 0.10. Source tree: m09 working tree after 9d3eb02 plus the bench fix (no src hash in the JSON).
+about 6 to 7 provider calls, fake in-process channel). Host probe at start cpuBusy 0.26, at end 0.10. Source tree: m09 working tree after 9d3eb02 plus the bench fix, built BEFORE the L1 one-line change to `profiler.service.ts` stop() (stop path only; no src hash in the JSON).
 Node 24 and Node 20 were NOT re-measured with providers; no overhead figure is claimed for them.
 
 | scenario | CPU us/msg off | on | delta % | abs added us/msg | throughput delta | latency p99 delta | profiler-related |
@@ -196,7 +196,7 @@ Node 24 and Node 20 were NOT re-measured with providers; no overhead figure is c
 Reading, with the limits:
 - With provider tracing active, Tracelet at production defaults costs about 57 to 100 us of CPU per message in this workload (about 26 to 50% of a 220 us handler) and lowers saturation throughput by 16 to 19%.
   This is a substantial cost in a cheap-handler benchmark; it is NOT shown to be small. No claim is made about handlers with real I/O, which was not measured. The offered-load CI is wide (half width 31 points), so +49.6% is an imprecise point.
-- sampleRate 1 (worst case) costs 300 to 330 us per message, halves saturation throughput, and the bounded queue sheds about 90% of traces (about 18 100 of ~20 500 dropped as `queue`).
+- sampleRate 1 (worst case) costs 300 to 332 us per message, halves saturation throughput, and the bounded queue sheds about 90% of traces (about 18 100 of ~20 500 dropped as `queue`).
 - The profiler at the 99 Hz default is not separable from B in this design (D CI overlaps B); its isolated cost belongs to `bench/profiling/ab-overhead.int-spec.ts`. Profiler window rotation (30 s) was not exercised in 5 to 10 s runs.
 - Shutdown with provider data: at defaults 16 to 62 ms offered, 217 to 1422 ms closed-loop (bounded, below the 5 s flush bound). At sampleRate 1 shutdown always ends at the 5 s bound (5013 to 5032 ms) and persists 0 operation and 0 metric rollups although the queue is empty afterwards: control items queued behind a saturated trace pool are discarded.
   Known limitation, NOT fixed in Stage 09; the drain order spans Claude's queue and Codex's writer and needs an owner decision.
