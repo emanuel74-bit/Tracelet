@@ -144,6 +144,8 @@ export class ContinuousProfiler implements ProfilerHealthSource {
   private retried = false;
   private healthyWindows = 0;
   private stopping = false;
+  /** Bumped by stop(): an initial start / retry / resume that began under an older generation lost ownership and must not publish. */
+  private generation = 0;
   private keepAliveState: KeepAliveState = 'off';
   private keepAliveOffReason: string | undefined;
   private consecutiveOver = 0;
@@ -245,6 +247,7 @@ export class ContinuousProfiler implements ProfilerHealthSource {
   async stop(): Promise<void> {
     try {
       this.stopping = true;
+      this.generation++;
       this.clearTimers();
       const sampler = this.sampler;
       this.sampler = undefined;
@@ -259,6 +262,9 @@ export class ContinuousProfiler implements ProfilerHealthSource {
   }
 
   private async startSampler(): Promise<void> {
+    const generation = this.generation;
+    // set once stop() won the race: from then on the local sampler never reaches onWindow side effects (no offers)
+    let abandoned = false;
     // eslint-disable-next-line prefer-const
     let sampler: ContinuousCpuSampler;
     const sync = (): void => {
@@ -277,17 +283,29 @@ export class ContinuousProfiler implements ProfilerHealthSource {
         ...(this.deps.cwd !== undefined ? { cwd: this.deps.cwd } : {}),
       },
       onWindow: (w) => {
+        if (abandoned) return; // a normal stop() still delivers its final partial window
         sync();
         return this.onWindow(w);
       },
-      onError: (err) => this.onSamplerError(err),
+      onError: (err) => {
+        if (abandoned || generation !== this.generation) return;
+        this.onSamplerError(err);
+      },
     });
     this.consecutiveOver = 0;
     try {
       await sampler.start();
+      if (generation !== this.generation) {
+        // stop() won while the inspector was starting: tear the local sampler down before it is ever published
+        abandoned = true;
+        await sampler.stop();
+        return;
+      }
       sync();
       this.counters.lastInitialStartMs = sampler.lifecycle.startMs;
     } catch (err) {
+      abandoned = true;
+      if (generation !== this.generation) return; // a delayed failure must not revive or relabel a stopped profiler
       this.state = 'unavailable';
       this.reason = `could not start the inspector profiler: ${msg(err)}`;
       return;
@@ -410,14 +428,17 @@ export class ContinuousProfiler implements ProfilerHealthSource {
     this.backoffTimer = undefined;
     const sampler = this.sampler;
     if (!sampler || this.state !== 'backoff') return;
+    const generation = this.generation;
     try {
       await sampler.resume();
+      if (generation !== this.generation) return; // stop() owns the sampler now
       this.counters.lastResumeMs = sampler.lifecycle.resumeMs;
       if (this.state === 'backoff') {
         this.state = 'running';
         this.reason = undefined;
       }
     } catch (err) {
+      if (generation !== this.generation) return;
       this.onSamplerError(err);
     }
   }
@@ -442,16 +463,10 @@ export class ContinuousProfiler implements ProfilerHealthSource {
     this.retryTimer = undefined;
     if (this.state !== 'error') return;
     const before = this.reason;
+    const generation = this.generation;
     await this.startSampler();
-    if (this.stopping) {
-      // stop() ran while the retry was starting: do not leave a live sampler behind
-      const late = this.sampler;
-      this.sampler = undefined;
-      await late?.stop();
-      this.state = 'stopped';
-      this.reason = undefined;
-      return;
-    }
+    // stop() ran while the retry was starting: startSampler already tore its local sampler down and stop() set the state
+    if (generation !== this.generation) return;
     if ((this.state as ProfilerState) === 'unavailable') {
       this.state = 'error';
       this.reason = `${before ?? 'inspector error'}; retry failed (${this.reason}), profiling stays off until restart`;

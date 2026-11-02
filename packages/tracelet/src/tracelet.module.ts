@@ -171,8 +171,14 @@ export class TraceletLifecycle implements OnModuleInit, OnApplicationBootstrap, 
   };
 
   /** Standalone servers started by Tracelet.listen are closed with the application. */
-  trackServer(server: StandaloneServer): void {
+  trackServer(server: StandaloneServer): boolean {
+    if (this._closing) {
+      // registration after shutdown started (the hooks already closed and cleared the set): close the late server right away
+      void server.close().catch(() => undefined);
+      return false;
+    }
     this.servers.add(server);
+    return true;
   }
 
   /** Exposed for health tests. */

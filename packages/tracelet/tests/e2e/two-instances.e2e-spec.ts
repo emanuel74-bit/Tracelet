@@ -134,15 +134,10 @@ describe('T11/T17 e2e: Mongo down never affects the host', () => {
     const c = stopped.counters!;
     const lost = c.tracesDroppedQueueFull + c.tracesDroppedStorage + c.tracesDroppedAdmission;
     expect(c.tracesDroppedQueueFull).toBeGreaterThan(0); // the 50-trace pool overflowed while Mongo was down
-    // Review L1 (Codex-owned storage/index.ts:45): the outer 5 s shutdown bound races writer.shutdown(), so up to the queue capacity
-    // (50) plus one in-flight batch item can be dropped without being counted. Tolerated here; the strict equality is the todo below.
-    expect(lost).toBeGreaterThanOrEqual(N - (50 + 1));
-    expect(lost).toBeLessThanOrEqual(N);
-    // L1 (Codex): the same shutdown race can leave the (bounded) queue non-empty; never above its cap. Strict emptiness is in the todo below.
-    expect(stopped.traceQueueDepth).toBeLessThanOrEqual(50);
+    // strict exactly-once accounting: every one of the N roots is counted as a drop and nothing is left queued after shutdown
+    expect(lost).toBe(N);
+    expect(stopped.traceQueueDepth).toBe(0);
   });
-
-  it.todo('[L1, Codex stage 08] strict accounting after a dead-Mongo shutdown: lost === 600 (every trace counted as a drop)');
 
   it('[REAL MONGO] mongod stopped mid-run: worker keeps processing, acks identical, loss counted, shutdown bounded', async ctx => {
     if (!mongo) return ctx.skip(NOT_RUN);

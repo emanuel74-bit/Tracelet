@@ -4,18 +4,41 @@ import { resolve } from 'node:path';
 import ts from 'typescript';
 import { describe, expect, it } from 'vitest';
 
-/** Executes the authorize() sample printed in README.md so the documented code is the tested code. */
-function loadSample(): (token: string | undefined) => (req: any) => boolean {
-  const readme = readFileSync(resolve(__dirname, '..', '..', '..', 'README.md'), 'utf8');
-  const m = /<!-- sample:authorize:begin -->\s*```ts\n([\s\S]*?)```\s*<!-- sample:authorize:end -->/.exec(readme);
-  expect(m, 'README sample markers').not.toBeNull();
-  const js = ts.transpileModule(m![1], { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+/** Extracts the TypeScript sample between the README markers. Accepts LF and CRLF checkouts (autocrlf). */
+function extractSample(readmeText: string): string | undefined {
+  const readme = readmeText.replace(/\r\n?/g, '\n');
+  return /<!-- sample:authorize:begin -->\s*```ts\n([\s\S]*?)```\s*<!-- sample:authorize:end -->/.exec(readme)?.[1];
+}
+
+/** Executes the authorize() sample so the documented code is the tested code. */
+function compileSample(source: string | undefined): (token: string | undefined) => (req: any) => boolean {
+  expect(source, 'README sample markers').toBeDefined();
+  const js = ts.transpileModule(source!, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   const mod: { exports: any } = { exports: {} };
   new Function('module', 'exports', 'require', js)(mod, mod.exports, createRequire(__filename));
   return mod.exports.bearerAuthorize;
 }
 
+const readmeText = (): string => readFileSync(resolve(__dirname, '..', '..', '..', 'README.md'), 'utf8');
+const loadSample = () => compileSample(extractSample(readmeText()));
+
 const req = (authorization?: string) => ({ method: 'GET', path: '/', headers: authorization === undefined ? {} : { authorization }, remoteAddress: '203.0.113.9', raw: {}, adapter: 'express' });
+
+describe('README sample extraction line endings (L3)', () => {
+  it('extracts the same working sample from LF and CRLF versions of the README', () => {
+    const lf = readmeText().replace(/\r\n/g, '\n');
+    const crlf = lf.replace(/\n/g, '\r\n');
+    expect(crlf).toContain('\r\n');
+    const fromLf = extractSample(lf);
+    expect(fromLf).toContain('bearerAuthorize');
+    expect(extractSample(crlf)).toBe(fromLf);
+    for (const text of [lf, crlf]) {
+      const authorize = compileSample(extractSample(text))('tok');
+      expect(authorize(req('Bearer tok'))).toBe(true);
+      expect(authorize(req('Bearer nope'))).toBe(false);
+    }
+  });
+});
 
 describe('README authorize sample', () => {
   const bearerAuthorize = loadSample();

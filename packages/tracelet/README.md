@@ -105,7 +105,7 @@ await Tracelet.listen({ port: 3100, authorize: bearerAuthorize(process.env.OBSER
 
 `Tracelet.listen(options, app?)` needs the `TraceletModule` of the same process. If a process holds more than one Nest application with
 `TraceletModule`, pass the application as the second argument; without it the most recently created application that is not shutting
-down is used and a warning is logged when several are alive. Listening on an application that is already shutting down throws. Binding a non-loopback `host` without `authorize` throws.
+down is used and a warning is logged when several are alive. Listening on an application that is already shutting down rejects, and so does a `listen()` whose listener finishes starting after the application began to shut down (the late listener is closed first, so no port stays bound). Binding a non-loopback `host` without `authorize` throws.
 It resolves `undefined` when Tracelet is disabled. The server is closed with the application.
 
 ## Access control (read this before deploying)

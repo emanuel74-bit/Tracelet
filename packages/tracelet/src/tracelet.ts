@@ -69,7 +69,8 @@ export class Tracelet {
    * host requires `authorize`). Needs `TraceletModule` in a Nest application (context) of this process, created before this
    * call. Pass that application as `app` whenever the process may hold more than one (without it the most recently created
    * application that is not shutting down is used, with a warning when there are several). Resolves `undefined` when
-   * Tracelet is disabled; throws when the selected application is already shutting down. The server is closed with the application.
+   * Tracelet is disabled; REJECTS when the selected application is already shutting down, or starts shutting down while the
+   * listener is still starting (the late listener is closed before the rejection, so no port stays bound). The server is closed with the application.
    */
   static async listen(options: TraceletStandaloneServerOptions, app?: INestApplicationContext): Promise<StandaloneServer | undefined> {
     let lifecycle: TraceletLifecycle | undefined;
@@ -101,7 +102,10 @@ export class Tracelet {
       port: options.port,
       hasAuthorize: options.authorize !== undefined,
     });
-    lifecycle.trackServer(server);
+    // the closing check above is stale after the async listener startup: shutdown may have run meanwhile
+    if (!lifecycle.trackServer(server)) {
+      throw new Error('Tracelet.listen(): the application shut down while the listener was starting; the listener was closed.');
+    }
     return server;
   }
 }
