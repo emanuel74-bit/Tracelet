@@ -44,7 +44,8 @@ describe('real-sampler tests are gated for Node 20 + Windows', () => {
     for (const f of files) {
       const src = readFileSync(f, 'utf8');
       // Scope = files that actually use the whole-test gate (see the title). Files that gate a single mode themselves through
-      // samplerBusyWaitReason (bench/integrated: modes A-C start no sampler, only mode D does) are covered by the first test.
+      // samplerBusyWaitReason (bench/integrated/overhead.int-spec.ts gates mode D with samplerBusyWaitReason(99); the sampler itself
+      // runs in the child tests/support/bench/integrated-worker.ts, which this scan does not reach) are exempt from the first-statement rule.
       if (!/\bskipIfBusyWait\(/.test(src)) continue;
       const re = /async \(ctx\) => \{\s*\n\s*(.*)\n/g;
       let m: RegExpExecArray | null;

@@ -103,9 +103,11 @@ async function main(): Promise<void> {
   if (MODE === 'on') {
     const entry = env.BENCH_TRACELET_ENTRY!;
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const t = require(entry) as { TraceletModule: { forRoot(o: unknown): unknown }; TraceletInstrument: unknown; trace: typeof traceFn };
+    const t = require(entry) as { TraceletModule: { forRoot(o: unknown): unknown }; createTraceletInstrument(o?: { enabled?: boolean }): unknown; trace: typeof traceFn };
     traceFn = t.trace;
-    instrumentRef = t.TraceletInstrument;
+    // NODE_ENV=production disables the DEFAULT instrument (instrument.ts isEnabled); provider tracing must be switched on explicitly,
+    // otherwise only the custom root is measured (Stage 09 review H1).
+    instrumentRef = t.createTraceletInstrument({ enabled: true });
     const tracing: Record<string, unknown> = {};
     if (env.BENCH_SAMPLE_RATE !== undefined && env.BENCH_SAMPLE_RATE !== '') tracing.sampleRate = Number(env.BENCH_SAMPLE_RATE);
     if (env.BENCH_MAX_ROOTS_PER_SECOND) tracing.maxRootsPerSecond = Number(env.BENCH_MAX_ROOTS_PER_SECOND);

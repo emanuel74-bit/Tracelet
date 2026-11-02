@@ -88,6 +88,27 @@ describe('ContinuousProfiler: stop() racing the initial start (M1)', () => {
     }
   });
 
+  it('double stop is harmless and stop() after stop() leaves a stopped profiler with no timers', async () => {
+    const tracker = new TimerLeakTracker();
+    try {
+      const before = tracker.snapshot();
+      const { profiler, sessions, offered } = setup(1);
+      const starting = profiler.start();
+      await tick();
+      const first = profiler.stop();
+      const second = profiler.stop();
+      sessions[0].release();
+      await Promise.all([starting, first, second]);
+      await profiler.stop();
+      expect(profiler.profilerHealth().state).toBe('stopped');
+      expect(sessions[0].disconnected).toBe(true);
+      expect(offered).toEqual([]);
+      expect(await tracker.leakedSince(before)).toEqual([]);
+    } finally {
+      tracker.dispose();
+    }
+  });
+
   it('delayed failure: stop wins, the failure does not relabel the stopped profiler as unavailable', async () => {
     const { profiler, sessions, offered } = setup(1);
     const starting = profiler.start();

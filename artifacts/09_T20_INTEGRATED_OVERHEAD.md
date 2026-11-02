@@ -1,5 +1,11 @@
 # T20 integrated runtime overhead (Mission 09)
 
+> **SUPERSEDED / LOW-TRUST (read first).** Independent review of 9d3eb02 (finding H1) showed that every "on" run in the body below and in the first
+> addendum measured ROOT-ONLY tracing: the benchmark child ran with `NODE_ENV=production` and the default instrument, which is disabled there, so no provider
+> was proxied (spans ~= traces, `method_rollups` 0). The claim "about 6 to 7 instrumented provider calls per message" was therefore not true of the measured
+> runs, and every B/C/D figure below understates the product cost. In addition the first five JSON files were taken with C: below the mongod disk floor.
+> The valid evidence is the section "Node 22.22.0 with provider instrumentation active" at the end of this file (and its JSON); Node 24 / 20 have NOT been re-measured.
+
 Status: MEASURED on one Windows host, five runtimes (Node 22.22.0, 24.22.2, 20.19.5 plus two extra points, 22.23.4 and 20.20.2). The integrated pipeline
 (deferred mapping, Mongo writer, rollups, metrics collector, and with variant D the profiler) is now inside the measured window, which the older
 `bench/instrumentation/overhead.int-spec.ts` microbenchmark excluded. What the data can and cannot show is stated per section; read "Limits" before quoting any number.
@@ -93,8 +99,8 @@ Closed-loop throughput (msg/s, 32 in flight, off about 4370 to 4560 on the quiet
 
 Reading: in this synthetic handler (about 220 us of CPU per message, 6 to 7 instrumented provider calls) the Tracelet pipeline at production defaults costs about 32 to 50 us of CPU per message,
 about 3 to 4 times that at sampleRate 1, and enabling the profiler on top adds nothing that this design can separate from B (D vs B CIs overlap on every runtime; the profiler's own cost is better bounded by
-`bench/profiling/ab-overhead.int-spec.ts`). The absolute us/msg is the transferable number; the percentages are relative to this unusually cheap handler and would be about 0.1 to 1% for a handler that spends 5 to 50 ms per message.
-Most of the B cost is the unsampled path (provider proxies, root token, admission) rather than the 5% that are recorded: B persisted only about 125 to 225 traces from 20 500 roots.
+`bench/profiling/ab-overhead.int-spec.ts`). The percentages are relative to this unusually cheap handler; no extrapolation to real services is made (not measured).
+B persisted only about 125 to 225 traces from 20 500 roots; attribution of the cost to individual parts was NOT measured (and these runs had no provider proxies, see the banner).
 
 Caller-visible latency, closed loop (mean of 6 pairs, us, off -> on, p50 delta % +- half width): B 24.22.2 p50 6931 -> 7553 (+9.0 +-1.8), p95 8095 -> 10220, p99 9691 -> 14211 (p99 `cannot-bound`, 1 of 6 pairs negative);
 B 22.22.0 p50 7214 -> 8197 (+13.6 +-0.7), p95 8273 -> 10485, p99 9382 -> 12397; C 22.22.0 p50 7195 -> 10629 (+47.7 +-2.8), p99 9868 -> 17364. CAUTION: with 32 messages in flight these latencies are queueing times
@@ -135,7 +141,7 @@ in D the 30 s profile window never closes inside the run either, so the single p
 Can show: on this host and workload, a bounded (95% t-interval over 6 alternating pairs, same sign in every pair) CPU cost per message of the whole in-process pipeline against a real mongod, for production defaults, worst-case sampling and profiling-on, for three Node majors,
 with the data demonstrably produced and persisted, plus the shutdown behaviour above.
 Cannot show: Linux or OpenShift numbers (cgroup CPU limits, scheduler, timers and `cpuUsage` accounting differ), a real RabbitMQ socket/amqplib channel (a fake in-process channel, no network, no prefetch),
-a handler with real I/O (the 200 us busy-wait plus `setImmediate` yields is a deliberately cheap stand-in: relative percentages are inflated versus real services), multi-replica contention on one Mongo, a networked Mongo (a loopback in-memory mongod
+a handler with real I/O (the 200 us busy-wait plus `setImmediate` yields is a deliberately cheap stand-in: relative percentages are specific to this cheap handler), multi-replica contention on one Mongo, a networked Mongo (a loopback in-memory mongod
 shares the 4 cores with the app, which is why the on-mode `otherLoad` is higher; its CPU is NOT in the child's CPU figure, only in the writer's client-side cost), runs longer than 10 s (leaks, rollup/metric interval ticks, profile window boundaries, retention/TTL),
 or any per-handler latency in milliseconds beyond the caveats above. Six pairs give wide t-intervals (t = 2.571); the `bounded` verdict is only as good as the host stayed quiet. The shared host varied from 6% to 86% busy between runs; the per-run `otherLoadDuringRun` and per-pair probe flags are in the JSON.
 Mode D on Node 20 on Windows is NOT RUN: the profiler refuses the default rate there (CR-002, "V8 11.3.244.8-node.38 predates its precise sleep timer"); recorded in the JSON as `status: NOT RUN` with the reason.
@@ -168,3 +174,31 @@ Defects/observations from the rerun:
 - C (sampleRate 1) shutdown always ends at the 5 s flush bound (5013 to 5024 ms) and persists 0 operation and 0 metric rollups although queue depth after stop is 0: the control items queued behind a saturated trace pool are discarded.
   Only the saturated worst-case configuration shows it; at defaults rollups persist (1 metric rollup per run). Recorded as a known limitation, not fixed in Stage 09; owner to be decided (queue drain order is Claude-owned, writer drain is Codex-owned).
 - `method_rollups` stays 0 in every row (per-method rollups are not produced by this workload path); uninvestigated.
+
+## Node 22.22.0 with provider instrumentation active (valid evidence; supersedes everything above)
+
+File: `artifacts/09_T20_integrated_node22.22.0_providers.json`. Changes versus the earlier runs (review finding H1): the child now builds its instrument with
+`createTraceletInstrument({ enabled: true })` (the default instrument is OFF under `NODE_ENV=production`), and an "on" row is invalid when persisted spans < 3 x traces.
+Result: 6/6 valid pairs and 0 contended pairs in every scenario; about 5 spans per trace (e.g. B-offered 224 traces / ~1100 spans), rollups persisted,
+queue depth 0 after stop. Same host and method as above (Windows 10, i5-7400 4 cores, loopback in-memory mongod 8.2.6, TEMP on D:, synthetic 200 us handler with
+about 6 to 7 provider calls, fake in-process channel). Host probe at start cpuBusy 0.26, at end 0.10. Source tree: m09 working tree after 9d3eb02 plus the bench fix (no src hash in the JSON).
+Node 24 and Node 20 were NOT re-measured with providers; no overhead figure is claimed for them.
+
+| scenario | CPU us/msg off | on | delta % | abs added us/msg | throughput delta | latency p99 delta | profiler-related |
+|---|---|---|---|---|---|---|---|
+| B-offered (defaults, 2000 msg/s) | 218.4 | 318.6 | +49.6 (95% half 31) | 100 | none (rate-limited) | +41% (bounded) | - |
+| B-closed (defaults, saturation) | 224.2 | 289.3 | +29.1 (half 5.7) | 65 | -18.6% | +43% (bounded) | - |
+| C-offered (sampleRate 1) | 211.3 | 543.8 | +161 (half 37) | 332 | none | cannot-bound (0 inside CI) | worst case |
+| C-closed (sampleRate 1) | 223.4 | 526.0 | +135.5 (half 6) | 303 | -51.9% | +152% (bounded) | worst case |
+| D-offered (defaults + profiler 99 Hz) | 229.0 | 315.0 | +37.8 (half 9) | 86 | none | cannot-bound | not separable from B |
+| D-closed (defaults + profiler 99 Hz) | 220.8 | 277.9 | +25.8 (half 3.5) | 57 | -16.2% | +40% (bounded) | not separable from B |
+
+Reading, with the limits:
+- With provider tracing active, Tracelet at production defaults costs about 57 to 100 us of CPU per message in this workload (about 26 to 50% of a 220 us handler) and lowers saturation throughput by 16 to 19%.
+  This is a substantial cost in a cheap-handler benchmark; it is NOT shown to be small. No claim is made about handlers with real I/O, which was not measured. The offered-load CI is wide (half width 31 points), so +49.6% is an imprecise point.
+- sampleRate 1 (worst case) costs 300 to 330 us per message, halves saturation throughput, and the bounded queue sheds about 90% of traces (about 18 100 of ~20 500 dropped as `queue`).
+- The profiler at the 99 Hz default is not separable from B in this design (D CI overlaps B); its isolated cost belongs to `bench/profiling/ab-overhead.int-spec.ts`. Profiler window rotation (30 s) was not exercised in 5 to 10 s runs.
+- Shutdown with provider data: at defaults 16 to 62 ms offered, 217 to 1422 ms closed-loop (bounded, below the 5 s flush bound). At sampleRate 1 shutdown always ends at the 5 s bound (5013 to 5032 ms) and persists 0 operation and 0 metric rollups although the queue is empty afterwards: control items queued behind a saturated trace pool are discarded.
+  Known limitation, NOT fixed in Stage 09; the drain order spans Claude's queue and Codex's writer and needs an owner decision.
+- `instances` rows: the reviewer saw `instances: 0` in two rows of the earlier healthy-disk run (B-closed pair 1, D-closed pair 5). Their cause is unexplained (disk space does not account for them) and remains open; this run's validity rules do not check heartbeats.
+- Not measured: Linux/OpenShift, real RabbitMQ/amqplib socket, networked or multi-replica Mongo, runs longer than ~10 s.

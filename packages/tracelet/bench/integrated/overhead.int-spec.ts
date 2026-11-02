@@ -204,9 +204,13 @@ async function oneRun(script: string, entry: string, mongoUri: string, mode: 'of
       row.mongoCounts = counts;
       await client.db(db).dropDatabase();
       if (counts.traces === 0) {
-      row.valid = false;
-      row.invalidReasons.push('no traces persisted in Mongo: data was not actually produced/written');
-    }
+        row.valid = false;
+        row.invalidReasons.push('no traces persisted in Mongo: data was not actually produced/written');
+      } else if (mode === 'on' && counts.spans < counts.traces * 3) {
+        // Each message makes about 6-7 provider calls; ~1 span per trace means provider instrumentation was NOT active (review H1).
+        row.valid = false;
+        row.invalidReasons.push(`spans ${counts.spans} < 3 x traces ${counts.traces}: provider instrumentation inactive, root-only tracing measured`);
+      }
     }
   } catch (e) {
     row.valid = false;

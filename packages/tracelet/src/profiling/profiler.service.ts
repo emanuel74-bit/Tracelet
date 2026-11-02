@@ -252,6 +252,8 @@ export class ContinuousProfiler implements ProfilerHealthSource {
       const sampler = this.sampler;
       this.sampler = undefined;
       if (sampler) await sampler.stop();
+      // the final window delivered by sampler.stop() can still run enterBackoff and arm a timer after the first clear (review L1)
+      this.clearTimers();
       if (this.state === 'starting' || this.state === 'running' || this.state === 'backoff' || this.state === 'error') {
         this.state = 'stopped';
         this.reason = undefined;

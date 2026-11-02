@@ -70,7 +70,7 @@ export class Tracelet {
    * call. Pass that application as `app` whenever the process may hold more than one (without it the most recently created
    * application that is not shutting down is used, with a warning when there are several). Resolves `undefined` when
    * Tracelet is disabled; REJECTS when the selected application is already shutting down, or starts shutting down while the
-   * listener is still starting (the late listener is closed before the rejection, so no port stays bound). The server is closed with the application.
+   * listener is still starting (the late listener is told to close before the rejection and stops accepting connections immediately, so no port stays bound). The server is closed with the application.
    */
   static async listen(options: TraceletStandaloneServerOptions, app?: INestApplicationContext): Promise<StandaloneServer | undefined> {
     let lifecycle: TraceletLifecycle | undefined;
