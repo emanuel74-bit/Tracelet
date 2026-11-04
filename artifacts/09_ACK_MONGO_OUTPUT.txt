@@ -1,0 +1,29 @@
+
+> tracelet@0.1.0 test:mongo
+> node tests/support/e2e/with-mongo.mjs
+
+
+ RUN  v4.1.12 D:/codeShit/Tracelet-wt/m09/packages/tracelet
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  23:54:17
+   Duration  3.78s (transform 231ms, setup 167ms, import 164ms, tests 2.92s, environment 0ms)
+
+
+ RUN  v4.1.12 D:/codeShit/Tracelet-wt/m09/packages/tracelet
+
+
+ Test Files  2 passed (2)
+      Tests  6 passed | 1 skipped (7)
+   Start at  23:54:26
+   Duration  106.73s (transform 256ms, setup 85ms, import 405ms, tests 105.58s, environment 0ms)
+
+npm error Lifecycle script `test:mongo` failed with error:
+npm error workspace @tracelet/dashboard@0.1.0
+npm error location D:\codeShit\Tracelet-wt\m09\packages\tracelet\ui
+npm error Missing script: "test:mongo"
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run --workspace=@tracelet/dashboard@0.1.0

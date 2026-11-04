@@ -1,0 +1,160 @@
+{
+  "node": "v22.22.0",
+  "contention": {
+    "before": {
+      "cpuBusy": 0.825,
+      "lagP99Ms": 16.2,
+      "lagMaxMs": 20.3,
+      "samples": 301,
+      "durationMs": 1700.7
+    },
+    "after": {
+      "cpuBusy": 0.074,
+      "lagP99Ms": 0.5,
+      "lagMaxMs": 0.6,
+      "samples": 200,
+      "durationMs": 1000.3
+    }
+  },
+  "states": [
+    "running"
+  ],
+  "continuity": {
+    "windows": 7,
+    "withGap": 6,
+    "contiguous": 6,
+    "gaps": [
+      11.91,
+      0.76,
+      5.04,
+      11.1,
+      0.47,
+      7.54
+    ],
+    "coverage": 0.9988174177454956,
+    "totalSpanMs": 31139.483000010252
+  },
+  "startStallMs": {
+    "values": [
+      0.27,
+      0.13,
+      0.13,
+      0.21,
+      0.11,
+      0.11
+    ],
+    "p50": 0.13,
+    "max": 0.27
+  },
+  "stopStallMs": {
+    "values": [
+      0.5,
+      0.66,
+      0.48,
+      0.54,
+      0.38,
+      0.45
+    ],
+    "p50": 0.5,
+    "max": 0.66
+  },
+  "foldMs": {
+    "values": [
+      1.95,
+      1.02,
+      0.27,
+      0.24,
+      0.24,
+      0.23
+    ],
+    "p50": 0.27,
+    "max": 1.95
+  },
+  "achievedSampleRateHz": [
+    90.44634470702789,
+    91.30039127312104,
+    90.97932949633842,
+    90.8826668737884,
+    89.6308486624043,
+    89.72435796013275,
+    91.7622068719899
+  ],
+  "windows": [
+    {
+      "seq": 0,
+      "final": false,
+      "sampleCount": 1,
+      "idleSampleCount": 452,
+      "totalSampleCount": 453,
+      "sampledSpanMs": 4997
+    },
+    {
+      "seq": 1,
+      "final": false,
+      "sampleCount": 3,
+      "idleSampleCount": 455,
+      "totalSampleCount": 458,
+      "sampledSpanMs": 5005,
+      "gapBeforeMs": 11.911
+    },
+    {
+      "seq": 2,
+      "final": false,
+      "sampleCount": 1,
+      "idleSampleCount": 455,
+      "totalSampleCount": 456,
+      "sampledSpanMs": 5001,
+      "gapBeforeMs": 0.761
+    },
+    {
+      "seq": 3,
+      "final": false,
+      "sampleCount": 1,
+      "idleSampleCount": 454,
+      "totalSampleCount": 455,
+      "sampledSpanMs": 4995,
+      "gapBeforeMs": 5.043
+    },
+    {
+      "seq": 4,
+      "final": false,
+      "sampleCount": 1,
+      "idleSampleCount": 449,
+      "totalSampleCount": 450,
+      "sampledSpanMs": 5009,
+      "gapBeforeMs": 11.099
+    },
+    {
+      "seq": 5,
+      "final": false,
+      "sampleCount": 1,
+      "idleSampleCount": 448,
+      "totalSampleCount": 449,
+      "sampledSpanMs": 4993,
+      "gapBeforeMs": 0.469
+    },
+    {
+      "seq": 6,
+      "final": true,
+      "sampleCount": 2,
+      "idleSampleCount": 100,
+      "totalSampleCount": 102,
+      "sampledSpanMs": 1101,
+      "gapBeforeMs": 7.542
+    }
+  ],
+  "counters": {
+    "windows": 7,
+    "profilesOffered": 7,
+    "profilesRejected": 0,
+    "emptyWindows": 0,
+    "malformedWindows": 0,
+    "invalidSamples": 0,
+    "invalidDeltas": 0,
+    "cyclicStacks": 0,
+    "backoffs": 0,
+    "errors": 0,
+    "negativeGaps": 0,
+    "lastInitialStartMs": 88.79799999999977
+  }
+}

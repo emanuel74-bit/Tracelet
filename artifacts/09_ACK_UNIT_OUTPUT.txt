@@ -1,0 +1,10 @@
+
+ RUN  v4.1.12 D:/codeShit/Tracelet-wt/m09/packages/tracelet
+
+[Nest] 25216  - 11/02/2026, 11:53:30 PM    WARN [Tracelet.Profiler] [tracelet] profiler backing off: window block 60 ms (startStallMs 30, stopStallMs 30, foldMs 0) exceeded maxStallMs 1 for 3 consecutive windows; dominated by startStallMs; sampling paused for 1 window(s)
+[Nest] 25216  - 11/02/2026, 11:53:30 PM   ERROR [Tracelet.Profiler] [tracelet] CPU profiler error: fake Profiler.stop failure
+
+ Test Files  2 passed (2)
+      Tests  10 passed (10)
+   Start at  23:53:27
+   Duration  2.64s (transform 807ms, setup 107ms, import 3.18s, tests 249ms, environment 0ms)

@@ -1,0 +1,17 @@
+
+ RUN  v4.1.12 D:/codeShit/Tracelet-wt/m09/packages/tracelet
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  23:56:49
+   Duration  4.98s (transform 121ms, setup 61ms, import 183ms, tests 4.44s, environment 0ms)
+
+
+ RUN  v4.1.12 D:/codeShit/Tracelet-wt/m09/packages/tracelet
+
+
+ Test Files  2 passed (2)
+      Tests  6 passed | 1 skipped (7)
+   Start at  23:56:56
+   Duration  110.44s (transform 184ms, setup 67ms, import 329ms, tests 109.43s, environment 0ms)
