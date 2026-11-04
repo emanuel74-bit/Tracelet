@@ -5,7 +5,7 @@ import { createDiagnostics } from '../shared/diagnostics';
 import { telemetryCollections } from './collections';
 import { MongoTelemetryStore } from './documents';
 import { HeartbeatWriter } from './heartbeat-writer';
-import { ensureTelemetryIndexes } from './indexes';
+import { createTelemetryIndexSetup, TelemetryIndexSetupError } from './indexes';
 import { createMongoClient } from './mongo-client.factory';
 import { BoundedTelemetryWriter } from './telemetry-writer';
 import { retryDelay } from './retry';
@@ -27,10 +27,37 @@ export function createStorage(config: TraceletModuleOptions, queue: TelemetryQue
   let stopped = false;
   let stopPromise: Promise<void> | undefined;
   let wakeRetry: (() => void) | undefined;
+  const setupIndexes = createTelemetryIndexSetup(collections);
+  const waitRetry = (attempt: number) => new Promise<void>(resolve => {
+    if (stopped) { resolve(); return; }
+    const timer = setTimeout(() => { wakeRetry = undefined; resolve(); }, retryDelay(attempt));
+    timer.unref?.();
+    wakeRetry = () => { clearTimeout(timer); wakeRetry = undefined; resolve(); };
+  });
   const connect = async () => {
     for (let attempt = 0; !stopped; attempt++) {
-      try { await client.connect(); if (stopped) return; await ensureTelemetryIndexes(collections); if (!stopped) heartbeat.start(); return; }
-      catch { if (stopped) return; diagnostics.warn('startup', 'Storage connection or index setup failed; retrying.'); await new Promise<void>(resolve => { const timer = setTimeout(() => { wakeRetry = undefined; resolve(); }, retryDelay(attempt)); timer.unref?.(); wakeRetry = () => { clearTimeout(timer); wakeRetry = undefined; resolve(); }; }); }
+      try { await client.connect(); break; }
+      catch { if (stopped) return; diagnostics.warn('startup', 'Storage connection failed; retrying.'); await waitRetry(attempt); }
+    }
+    if (stopped) return;
+    // Visibility of this instance must not depend on DDL privileges or conflicts.
+    heartbeat.start();
+    for (let attempt = 0; !stopped; attempt++) {
+      try { await setupIndexes(); return; }
+      catch (error) {
+        if (stopped) return;
+        const reason = error instanceof TelemetryIndexSetupError
+          ? error.unauthorized && error.conflict ? 'missing createIndex privilege and conflicting index'
+            : error.unauthorized ? 'missing createIndex privilege'
+              : error.conflict ? 'conflicting index' : 'storage unavailable'
+          : 'storage unavailable';
+        if (!(error instanceof TelemetryIndexSetupError) || error.ttlFailed) {
+          diagnostics.warn('ttl-indexes', `TTL index setup incomplete (${reason}); automatic expiry is not verified. Provision or repair TTL indexes to ensure retention; retrying.`);
+        } else {
+          diagnostics.warn('query-indexes', `Query index setup incomplete (${reason}); queries may be degraded; retrying.`);
+        }
+        await waitRetry(attempt);
+      }
     }
   };
   const bounded = async (work: Promise<unknown>, deadline: number) => {
