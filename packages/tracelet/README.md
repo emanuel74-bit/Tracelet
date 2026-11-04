@@ -95,6 +95,31 @@ channel.consume('orders', msg => {
 
 A complete runnable example lives in `examples/nest-worker` of the repository (also with `docker-compose.yml` for RabbitMQ and MongoDB).
 
+### Tracing message consumers and other callbacks
+
+Any non-HTTP callback (a message broker consumer, a job runner, a cron tick, a websocket handler) is traced by wrapping the
+callback body with `trace(name, fn, { kind })`. `kind` is one of `http`, `rabbitmq`, `scheduled`, `event`, `custom` (default `custom`).
+
+* Only `kind: 'rabbitmq'` starts a new root by default, even when the callback is delivered synchronously inside an open trace
+  (`join: true` opts that kind into joining). Every other kind **joins** an open trace (becoming a child span of it) unless
+  you pass `forceRoot: true`. Outside any open trace every kind starts its own root.
+* Return values, thrown errors and rejections of your callback are unchanged.
+* Tracelet never patches the broker library, the channel or acknowledgements. The host applies the wrapper to its own handler and
+  keeps its own `ack`/`nack`/commit logic.
+
+```ts
+cron.schedule('* * * * *', () => {
+  trace('cleanup', () => jobs.cleanup(), { kind: 'scheduled' }).catch((err) => logger.error(err)); // trace() rethrows; do not leave a rejection unhandled
+});
+```
+
+#### Nest microservice transports
+
+Tracelet has no hook for Nest microservice transports (for example the RMQ transport): it installs no listener or interceptor
+for them. A provider call made while no root is open records nothing and creates no trace (provider instrumentation only adds
+spans to an already open root). Handlers reached through such a transport therefore need an explicit `trace()` wrapper inside the
+handler to get a root.
+
 ### Worker-only processes (no Nest HTTP server)
 
 ```ts
@@ -150,6 +175,45 @@ Options of `Tracelet.setup(app, options)`: `path` (default `/observe`; absolute;
 `publicBasePath` (when a proxy rewrites the path), `authorize`, `allowLoopbackWithoutAuth`.
 `Tracelet.setup` throws at startup when the app is already initialised, when the adapter is neither Express nor Fastify, or when
 `TraceletModule` is not imported. When Tracelet is disabled, nothing is mounted.
+
+## MongoDB privileges
+
+Tracelet only touches its own database (`storage.database`, default `observability`) and the seven collections
+`<collectionPrefix>traces`, `spans`, `profiles`, `operation_rollups`, `method_rollups`, `metric_rollups`, `instances`
+(default prefix `tracelet_`). Derived from the storage and query code (`insertMany`, `replaceOne` with upsert, `find`, `aggregate`,
+`createIndex`):
+
+| Action | Used for |
+|---|---|
+| `createIndex` | the 22 indexes including the TTL indexes, created at startup (see below) |
+| `insert` | trace, span and profile documents; also creates a missing collection implicitly |
+| `update` | upserts of rollups, metrics and the instance heartbeat (an upsert needs BOTH `insert` and `update`) |
+| `find` | the dashboard API (`find` and `aggregate`) |
+
+`remove` is not needed: expiry is done by the server's own TTL monitor. `createCollection` is not needed either: in the test below a
+user without it could insert into a missing collection (this was observed on mongod 8.2.6 only; not verified on Atlas or other versions). Example role:
+
+```js
+db.getSiblingDB('admin').createRole({
+  role: 'traceletTelemetry',
+  roles: [],
+  privileges: [{
+    resource: { db: 'observability', collection: '' }, // or one { db, collection } entry per tracelet_* collection
+    actions: ['find', 'insert', 'update', 'createIndex'],
+  }],
+});
+```
+
+`createIndex` is REQUIRED on every start, not only the first. Tracelet runs the index setup on every start (the call is issued even for
+indexes that already exist), and MongoDB rejects `createIndex` as unauthorized for a user without the privilege even when an identical
+index already exists, so pre-creating the indexes yourself does not avoid the problem. A conflicting existing index (an index with the
+same key but different options, `IndexOptionsConflict`) fails the same step and has the same effect.
+
+What happens when the index step fails (observed with the opt-in test `tests/integration/storage/mongo-permissions.int-spec.ts`):
+Tracelet does not throw and does not block startup, but it retries the index setup forever with backoff (at most every 8 s; one
+sanitised warning per minute, without URI or credentials). Traces are still written, but the instance heartbeat only starts after the
+indexes exist, so the instance never appears in the instances view, and if the TTL indexes were absent they are never created, so
+stored data never expires.
 
 ## Environment variables and defaults
 
